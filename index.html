@@ -1,0 +1,2212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crew Trip Swap Board</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy:#0B1F3A;--sky:#3B82F6;--sky-light:#EFF6FF;--green:#10B981;--green-light:#ECFDF5;
+    --amber:#F59E0B;--amber-light:#FFFBEB;--red:#EF4444;--red-light:#FEF2F2;
+    --purple:#7C3AED;--purple-light:#F5F3FF;
+    --grey:#6B7280;--border:#E5E7EB;--white:#FFFFFF;--text:#111827;--text-mid:#374151;--text-soft:#9CA3AF;
+    --mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;--radius:12px;--radius-sm:8px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:var(--sans);background:#F0F4F8;color:var(--text);min-height:100vh;}
+  nav{background:var(--navy);padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:100;}
+  .nav-brand{font-family:var(--mono);font-size:13px;color:#fff;letter-spacing:.08em;opacity:.9;}
+  .nav-tabs{display:flex;gap:4px;}
+  .nav-tab{padding:6px 12px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:transparent;color:rgba(255,255,255,.55);transition:all .15s;}
+  .nav-tab.active{background:rgba(255,255,255,.15);color:#fff;}
+  .nav-tab:hover:not(.active){color:rgba(255,255,255,.8);}
+  .page{display:none;padding:1.5rem;max-width:900px;margin:0 auto;}
+  .page.active{display:block;}
+  .card{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);padding:1.5rem;margin-bottom:1rem;}
+  .card-title{font-size:15px;font-weight:600;color:var(--text);margin-bottom:1rem;}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .form-group{display:flex;flex-direction:column;gap:6px;}
+  .form-group.full{grid-column:1/-1;}
+  label{font-size:12px;font-weight:500;color:var(--grey);text-transform:uppercase;letter-spacing:.05em;}
+  input,select,textarea{font-family:var(--sans);font-size:14px;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--white);color:var(--text);outline:none;transition:border-color .15s;width:100%;}
+  input:focus,select:focus,textarea:focus{border-color:var(--sky);}
+  textarea{resize:vertical;min-height:80px;}
+  .hint{font-size:11px;color:var(--text-soft);margin-top:2px;}
+  .toggle-group{display:flex;gap:8px;flex-wrap:wrap;}
+  .toggle-btn{flex:1;min-width:120px;padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-weight:500;cursor:pointer;background:var(--white);color:var(--grey);transition:all .15s;text-align:center;}
+  .toggle-btn.active{background:var(--navy);color:var(--white);border-color:var(--navy);}
+  .btn-submit{width:100%;padding:13px;background:var(--sky);color:var(--white);border:none;border-radius:var(--radius-sm);font-family:var(--sans);font-size:15px;font-weight:600;cursor:pointer;margin-top:1rem;transition:opacity .15s;}
+  .btn-submit:hover{opacity:.9;}
+  .btn-submit:disabled{opacity:.5;cursor:not-allowed;}
+  .btn-cancel{width:100%;padding:11px;background:transparent;color:var(--grey);border:1px solid var(--border);border-radius:var(--radius-sm);font-family:var(--sans);font-size:14px;font-weight:500;cursor:pointer;margin-top:8px;}
+  .btn-cancel:hover{background:#F9FAFB;}
+  .board-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:10px;}
+  .board-filters{display:flex;gap:8px;flex-wrap:wrap;}
+  .filter-pill{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--white);color:var(--grey);transition:all .15s;}
+  .filter-pill.active{background:var(--navy);color:var(--white);border-color:var(--navy);}
+  .trip-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:8px;display:flex;align-items:flex-start;gap:12px;transition:box-shadow .15s;position:relative;}
+  .trip-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.07);}
+  .trip-card.matched{border-color:var(--green);background:var(--green-light);}
+  .trip-card.expiring{border-color:var(--amber);}
+  .trip-card.pickup-card{border-color:var(--purple);background:var(--purple-light);}
+  .avatar{width:38px;height:38px;border-radius:50%;background:var(--sky-light);color:var(--sky);font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--mono);}
+  .trip-main{flex:1;min-width:0;}
+  .trip-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;}
+  .trip-name{font-size:14px;font-weight:600;color:var(--text);}
+  .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;font-family:var(--mono);letter-spacing:.03em;}
+  .badge-drop{background:#FEF2F2;color:#991B1B;}
+  .badge-swap{background:#EFF6FF;color:#1D4ED8;}
+  .badge-swapdrop{background:#F5F3FF;color:#5B21B6;}
+  .badge-pickup{background:var(--purple-light);color:#5B21B6;}
+  .badge-match{background:var(--green-light);color:#065F46;}
+  .badge-flight{background:var(--navy);color:var(--white);}
+  .badge-chain{background:#F5F3FF;color:#5B21B6;}
+  .badge-expiring{background:var(--amber-light);color:#92400E;}
+  .trip-details{font-size:13px;color:var(--text-mid);line-height:1.5;}
+  .trip-details span{margin-right:10px;}
+  .trip-wants{font-size:12px;color:var(--grey);margin-top:3px;}
+  .trip-days{font-size:11px;font-family:var(--mono);color:var(--text-soft);position:absolute;top:10px;right:80px;}
+  .match-note{font-size:11px;color:#065F46;font-weight:500;margin-top:4px;}
+  .card-actions{position:absolute;top:10px;right:12px;display:flex;gap:6px;}
+  .btn-edit,.btn-delete{padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;border:none;font-family:var(--sans);}
+  .btn-edit{background:var(--sky-light);color:var(--sky);}
+  .btn-edit:hover{background:#DBEAFE;}
+  .btn-delete{background:#FEF2F2;color:var(--red);}
+  .btn-delete:hover{background:#FEE2E2;}
+  .stats-row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:1rem;}
+  .stat{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;}
+  .stat-n{font-size:24px;font-weight:600;color:var(--text);font-family:var(--mono);}
+  .stat-l{font-size:11px;color:var(--grey);margin-top:2px;text-transform:uppercase;letter-spacing:.04em;}
+  .toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--navy);color:var(--white);padding:12px 20px;border-radius:20px;font-size:14px;font-weight:500;transition:transform .3s;z-index:999;white-space:nowrap;}
+  .toast.show{transform:translateX(-50%) translateY(0);}
+  .empty{text-align:center;padding:3rem 1rem;color:var(--text-soft);font-size:14px;}
+  .step{display:flex;gap:14px;margin-bottom:1.25rem;align-items:flex-start;}
+  .step-num{width:28px;height:28px;border-radius:50%;background:var(--navy);color:var(--white);font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--mono);}
+  .step-body{flex:1;font-size:14px;color:var(--text-mid);line-height:1.6;}
+  .step-body strong{color:var(--text);}
+  .code-block{background:var(--navy);color:#93C5FD;font-family:var(--mono);font-size:12px;padding:12px 14px;border-radius:var(--radius-sm);margin:8px 0;overflow-x:auto;white-space:pre;line-height:1.6;}
+  .copy-btn{display:inline-block;padding:4px 10px;background:var(--sky-light);color:var(--sky);border:none;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--sans);margin-top:4px;}
+  .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center;}
+  .modal-bg.open{display:flex;}
+  .modal{background:var(--white);border-radius:var(--radius);padding:1.5rem;width:90%;max-width:480px;max-height:90vh;overflow-y:auto;}
+  .modal-title{font-size:16px;font-weight:600;margin-bottom:1rem;}
+  /* ── ROSTER SCAN ── */
+  .scan-banner{background:var(--navy);border-radius:var(--radius);padding:14px 16px;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+  .scan-banner-text{color:#fff;font-size:13px;font-weight:500;line-height:1.4;}
+  .scan-banner-sub{color:rgba(255,255,255,.55);font-size:11px;margin-top:2px;}
+  .btn-scan{padding:9px 16px;background:var(--sky);color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:6px;font-family:var(--sans);}
+  .btn-scan:hover{opacity:.9;}
+  .btn-scan:disabled{opacity:.5;cursor:not-allowed;}
+  .scan-progress{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem;display:none;}
+  .scan-progress-label{font-size:12px;color:var(--grey);margin-bottom:6px;font-weight:500;}
+  .scan-bar-track{background:#E5E7EB;border-radius:99px;height:6px;overflow:hidden;}
+  .scan-bar-fill{background:var(--sky);height:100%;border-radius:99px;transition:width .3s;width:0%;}
+  .scan-status{font-size:11px;color:var(--text-soft);margin-top:6px;}
+  .scan-result-card{background:#F0FDF4;border:1px solid #BBF7D0;border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem;display:none;}
+  .scan-result-title{font-size:13px;font-weight:600;color:#065F46;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+  .scan-result-title svg{flex-shrink:0;}
+  .scan-trips-list{display:flex;flex-direction:column;gap:6px;}
+  .scan-trip-option{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid #BBF7D0;border-radius:var(--radius-sm);background:#fff;cursor:pointer;transition:border-color .15s;}
+  .scan-trip-option:hover{border-color:var(--green);}
+  .scan-trip-option.selected{border-color:var(--green);background:#ECFDF5;}
+  .scan-trip-label{flex:1;font-size:13px;color:var(--text);}
+  .scan-trip-sub{font-size:11px;color:var(--grey);}
+  .btn-use-trip{padding:7px 14px;background:var(--green);color:#fff;border:none;border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--sans);}
+  .scan-fail-card{background:#FEF2F2;border:1px solid #FECACA;border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem;display:none;}
+  .scan-fail-title{font-size:13px;font-weight:600;color:#991B1B;margin-bottom:4px;}
+  .scan-fail-body{font-size:12px;color:#7F1D1D;}
+  .cal-month{margin-bottom:1.5rem;}
+  .cal-month-title{font-size:15px;font-weight:600;color:var(--text);margin-bottom:8px;font-family:var(--mono);}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+  .cal-dow{font-size:10px;font-weight:600;color:var(--text-soft);text-align:center;padding:4px 0;text-transform:uppercase;letter-spacing:.04em;}
+  .cal-day{min-height:48px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--white);padding:4px 5px;cursor:pointer;transition:box-shadow .15s;position:relative;}
+  .cal-day:hover{box-shadow:0 2px 8px rgba(0,0,0,.08);}
+  .cal-day.empty{background:transparent;border-color:transparent;cursor:default;}
+  .cal-day.today{border-color:var(--sky);background:var(--sky-light);}
+  .cal-day.past{background:#F9FAFB;opacity:.6;cursor:default;}
+  .cal-day.has-listings{border-color:var(--navy);}
+  .cal-day.has-matches{border-color:var(--green);background:var(--green-light);}
+  .cal-day-num{font-size:11px;font-weight:600;color:var(--text-mid);}
+  .cal-day.today .cal-day-num{color:var(--sky);}
+  .cal-dots{display:flex;gap:2px;flex-wrap:wrap;margin-top:3px;}
+  .cal-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+  .cal-dot-drop{background:var(--red);}
+  .cal-dot-swap{background:var(--sky);}
+  .cal-dot-swapdrop{background:var(--purple);}
+  .cal-dot-pickup{background:#F59E0B;}
+  .cal-dot-match{background:var(--green);}
+  .cal-popup{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;margin-bottom:1rem;box-shadow:0 4px 16px rgba(0,0,0,.1);}
+  .cal-popup-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;}
+  .cal-popup-close{background:none;border:none;font-size:18px;cursor:pointer;color:var(--grey);line-height:1;}
+  .cal-legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:1rem;font-size:11px;color:var(--grey);}
+  .cal-legend-item{display:flex;align-items:center;gap:4px;}
+  @media(max-width:600px){.cal-day{min-height:38px;}.cal-dot{width:5px;height:5px;}}
+    .form-grid{grid-template-columns:1fr;}
+    .stats-row{grid-template-columns:1fr 1fr 1fr;}
+    nav{padding:0 .75rem;}
+    .nav-brand{display:none;}
+    .nav-tab{padding:6px 8px;font-size:11px;}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="nav-brand">QF CREW SWAPS</span>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('board',this)">Swap Board</button>
+    <button class="nav-tab" onclick="showPage('submit',this)">Post a Trip</button>
+    <button class="nav-tab" onclick="showPage('pickup',this)">Pick Up a Trip</button>
+    <button class="nav-tab" onclick="showPage('calendar',this)">Calendar</button>
+    <button class="nav-tab" onclick="showPage('setup',this)">Setup</button>
+  </div>
+</nav>
+
+<!-- SWAP BOARD -->
+<div id="page-board" class="page active">
+  <div class="stats-row">
+    <div class="stat"><div class="stat-n" id="stat-total">0</div><div class="stat-l">Listings</div></div>
+    <div class="stat"><div class="stat-n" id="stat-drops">0</div><div class="stat-l">Drops</div></div>
+    <div class="stat"><div class="stat-n" id="stat-swaps">0</div><div class="stat-l">Swaps</div></div>
+    <div class="stat"><div class="stat-n" id="stat-pickups">0</div><div class="stat-l">Pickups</div></div>
+    <div class="stat"><div class="stat-n" id="stat-matches">0</div><div class="stat-l">Matches</div></div>
+  </div>
+  <div class="board-header">
+    <div class="board-filters">
+      <button class="filter-pill active" onclick="setFilter('all',this)">All</button>
+      <button class="filter-pill" onclick="setFilter('drop',this)">Drops only</button>
+      <button class="filter-pill" onclick="setFilter('swap',this)">Swaps only</button>
+      <button class="filter-pill" onclick="setFilter('pickup',this)">Pickups only</button>
+      <button class="filter-pill" onclick="setFilter('matched',this)">Matched</button>
+    </div>
+    <button class="filter-pill" onclick="loadData()" style="border-color:var(--sky);color:var(--sky);">Refresh</button>
+  </div>
+  <div id="board-list"><div class="empty">Loading swap board...</div></div>
+</div>
+
+<!-- POST A TRIP -->
+<div id="page-submit" class="page">
+
+  <!-- Facebook post parser -->
+  <div class="scan-banner" style="background:#1877F2;margin-bottom:8px;">
+    <div>
+      <div class="scan-banner-text">📋 Read a Facebook post</div>
+      <div class="scan-banner-sub">Paste text or upload a screenshot — we'll fill in your details.</div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn-scan" id="fb-parse-btn" onclick="showFBPaste()">Paste text</button>
+      <button class="btn-scan" id="fb-image-btn" onclick="document.getElementById('fb-image-input').click()" style="background:rgba(255,255,255,.2);">📷 Screenshot</button>
+    </div>
+  </div>
+  <input type="file" id="fb-image-input" accept="image/*" style="display:none;" onchange="parseFBImage(this)">
+
+  <!-- FB paste area -->
+  <div id="fb-paste-area" style="display:none;background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem;">
+    <label style="font-size:12px;font-weight:500;color:var(--grey);text-transform:uppercase;letter-spacing:.05em;">Paste your Facebook post here</label>
+    <textarea id="fb-post-text" style="width:100%;margin-top:8px;min-height:100px;font-family:var(--sans);font-size:14px;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);resize:vertical;" placeholder="e.g. Hey guys, anyone want my Singapore trip 3rd April? Happy to swap for a Perth around the same time, don't mind 5 or 6 day..."></textarea>
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button class="btn-scan" id="fb-read-btn" onclick="parseFBPost()" style="background:var(--sky);">Read post</button>
+      <button class="btn-cancel" onclick="hideFBPaste()" style="margin-top:0;width:auto;padding:9px 16px;">Cancel</button>
+    </div>
+    <div id="fb-parse-status" style="font-size:12px;color:var(--grey);margin-top:8px;display:none;"></div>
+  </div>
+
+  <!-- FB image reading progress -->
+  <div class="scan-progress" id="fb-image-progress" style="display:none;">
+    <div class="scan-progress-label">Reading your screenshot...</div>
+    <div class="scan-bar-track"><div class="scan-bar-fill" id="fb-image-bar" style="width:60%;"></div></div>
+    <div class="scan-status">Asking Claude to read the post...</div>
+  </div>
+
+  <!-- FB parse failure -->
+  <div class="scan-fail-card" id="fb-fail-card">
+    <div class="scan-fail-title">Couldn't read this post</div>
+    <div class="scan-fail-body" id="fb-fail-body">Make sure your Anthropic API key is saved in Setup, or just fill in the form manually below.</div>
+  </div>
+
+  <!-- Multi-trip queue banner -->
+  <div id="fb-queue-banner" style="display:none;background:var(--amber-light);border:1px solid var(--amber);border-radius:var(--radius);padding:12px 16px;margin-bottom:1rem;">
+    <div style="font-size:13px;font-weight:600;color:#92400E;" id="fb-queue-label"></div>
+    <div style="font-size:11px;color:#92400E;margin-top:2px;">Check the details below are correct, then hit Post trip to continue.</div>
+    <button onclick="skipQueuedTrip()" style="margin-top:8px;padding:4px 12px;font-size:11px;font-weight:600;background:transparent;border:1px solid #92400E;border-radius:6px;color:#92400E;cursor:pointer;">Skip this trip</button>
+  </div>
+
+  <!-- Roster scan banner -->
+  <div class="scan-banner">
+    <div>
+      <div class="scan-banner-text">📷 Scan your roster</div>
+      <div class="scan-banner-sub">Photo or screenshot — we'll fill in your trip details automatically. Free, works on device.</div>
+    </div>
+    <button class="btn-scan" id="scan-btn" onclick="triggerScan()">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      Scan roster
+    </button>
+  </div>
+  <input type="file" id="roster-file-input" accept="image/*" capture="environment" style="display:none;" onchange="handleRosterImage(this)">
+
+  <!-- Scan progress -->
+  <div class="scan-progress" id="scan-progress">
+    <div class="scan-progress-label">Reading your roster...</div>
+    <div class="scan-bar-track"><div class="scan-bar-fill" id="scan-bar"></div></div>
+    <div class="scan-status" id="scan-status-text">Loading OCR engine...</div>
+  </div>
+
+  <!-- Scan results -->
+  <div class="scan-result-card" id="scan-result-card">
+    <div class="scan-result-title">
+      <svg width="14" height="14" fill="none" stroke="#065F46" stroke-width="2.5" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+      Trips found — tap one to fill the form
+    </div>
+    <div class="scan-trips-list" id="scan-trips-list"></div>
+    <div style="margin-top:8px;font-size:11px;color:var(--grey);">Not what you expected? Fill in manually below instead.</div>
+  </div>
+
+  <!-- Scan failure -->
+  <div class="scan-fail-card" id="scan-fail-card">
+    <div class="scan-fail-title">Couldn't find any trips in this image</div>
+    <div class="scan-fail-body">The scanner looks for codes like SIL (Singapore / QF2), PRL (Perth / QF10) or SBY (Standby). Make sure the image is clear and well-lit — or just fill in manually below.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title" id="form-title">Post your trip</div>
+    <div class="form-grid">
+      <div class="form-group full">
+        <label>Your name</label>
+        <input type="text" id="f-name" placeholder="e.g. Sarah Jones">
+      </div>
+      <div class="form-group full">
+        <label>Drop or Swap?</label>
+        <div class="toggle-group">
+          <div class="toggle-btn active" onclick="setType('Drop',this)">Drop — just want rid of it</div>
+          <div class="toggle-btn" onclick="setType('Swap',this)">Swap — want something in return</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Flight code</label>
+        <select id="f-flight">
+          <option value="">Select flight...</option>
+          <option value="QF2">QF2</option>
+          <option value="QF10">QF10</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Date of trip</label>
+        <input type="date" id="f-date">
+      </div>
+      <div class="form-group">
+        <label>Trip duration <span style="color:var(--red)">*</span></label>
+        <select id="f-duration">
+          <option value="">Select...</option>
+          <option value="4 day">4 day (QF2)</option>
+          <option value="5 day">5 day (QF10)</option>
+          <option value="6 day">6 day (QF10)</option>
+        </select>
+        <span class="hint">QF10 crew must select 5 day or 6 day</span>
+      </div>
+      <div class="form-group">
+        <label>Pax trip?</label>
+        <select id="f-pax">
+          <option value="">No — working trip</option>
+          <option value="Paxing out">Paxing out</option>
+          <option value="Paxing home">Paxing home</option>
+        </select>
+      </div>
+      <div class="form-group full" id="wants-group" style="display:none;">
+        <label>Flight you want in return</label>
+        <select id="f-wants">
+          <option value="">Select...</option>
+          <option value="QF2">QF2</option>
+          <option value="QF10">QF10</option>
+          <option value="QF2 or QF10">Either QF2 or QF10</option>
+        </select>
+      </div>
+      <div class="form-group full" id="wants-date-group" style="display:none;">
+        <label>Preferred date for wanted trip <span style="font-weight:400;font-size:11px;color:var(--text-soft)">(leave blank if flexible on date)</span></label>
+        <input type="text" id="f-wants-date" placeholder="e.g. 2026-04-06 or leave blank if flexible">
+      </div>
+      <div class="form-group full" id="also-drop-group" style="display:none;">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;text-transform:none;font-size:14px;font-weight:400;color:var(--text-mid);">
+          <input type="checkbox" id="f-also-drop" style="width:18px;height:18px;cursor:pointer;">
+          Also happy to drop if no swap is available
+        </label>
+      </div>
+      <div class="form-group full">
+        <label>Notes (optional)</label>
+        <textarea id="f-notes" placeholder="Any extra details..."></textarea>
+      </div>
+    </div>
+    <button class="btn-submit" id="submit-btn" onclick="submitTrip()">Post trip</button>
+    <input type="hidden" id="f-al-dates" value="">
+    <input type="hidden" id="f-wants-after" value="">
+    <input type="hidden" id="f-wants-before" value="">
+    <button class="btn-cancel" id="cancel-edit-btn" style="display:none;" onclick="cancelEdit()">Cancel edit</button>
+  </div>
+</div>
+
+<!-- PICK UP A TRIP -->
+<div id="page-pickup" class="page">
+
+  <!-- Facebook post parser for pickup -->
+  <div class="scan-banner" style="background:#1877F2;margin-bottom:8px;">
+    <div>
+      <div class="scan-banner-text">📋 Read a Facebook post</div>
+      <div class="scan-banner-sub">Paste text or upload a screenshot — we'll fill in what you're looking for.</div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn-scan" onclick="showPickupPaste()">Paste text</button>
+      <button class="btn-scan" id="pickup-image-btn" onclick="document.getElementById('pickup-image-input').click()" style="background:rgba(255,255,255,.2);">📷 Screenshot</button>
+    </div>
+  </div>
+  <input type="file" id="pickup-image-input" accept="image/*" style="display:none;" onchange="parsePickupImage(this)">
+
+  <!-- Pickup paste area -->
+  <div id="pickup-paste-area" style="display:none;background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem;">
+    <label style="font-size:12px;font-weight:500;color:var(--grey);text-transform:uppercase;letter-spacing:.05em;">Paste your Facebook post here</label>
+    <textarea id="pickup-post-text" style="width:100%;margin-top:8px;min-height:80px;font-family:var(--sans);font-size:14px;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);resize:vertical;" placeholder="e.g. Looking to pick up a Singapore trip, any date in May..."></textarea>
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button class="btn-scan" id="pickup-read-btn" onclick="parsePickupPost()" style="background:var(--sky);">Read post</button>
+      <button class="btn-cancel" onclick="hidePickupPaste()" style="margin-top:0;width:auto;padding:9px 16px;">Cancel</button>
+    </div>
+    <div id="pickup-parse-status" style="font-size:12px;color:var(--grey);margin-top:8px;display:none;"></div>
+  </div>
+
+  <!-- Pickup image progress -->
+  <div class="scan-progress" id="pickup-image-progress" style="display:none;">
+    <div class="scan-progress-label">Reading your screenshot...</div>
+    <div class="scan-bar-track"><div class="scan-bar-fill" style="width:60%;"></div></div>
+    <div class="scan-status">Asking Claude to read the post...</div>
+  </div>
+
+  <!-- Pickup parse failure -->
+  <div class="scan-fail-card" id="pickup-fail-card" style="display:none;">
+    <div class="scan-fail-title">Couldn't read this post</div>
+    <div class="scan-fail-body" id="pickup-fail-body">Make sure your Anthropic API key is saved in Setup, or just fill in the form manually below.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Looking to pick up a trip</div>
+    <p style="font-size:13px;color:var(--grey);margin-bottom:1rem;">Let the board know what you're after — anyone dropping or swapping that flight will be flagged as a match for you.</p>
+    <div class="form-grid">
+      <div class="form-group full">
+        <label>Your name</label>
+        <input type="text" id="p-name" placeholder="e.g. Sarah Jones">
+      </div>
+      <div class="form-group">
+        <label>Flight you want</label>
+        <select id="p-flight">
+          <option value="">Select flight...</option>
+          <option value="QF2">QF2</option>
+          <option value="QF10">QF10</option>
+          <option value="Any">Any QF2 or QF10</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Duration (QF10 only)</label>
+        <select id="p-duration">
+          <option value="">No preference</option>
+          <option value="5 day">5 day</option>
+          <option value="6 day">6 day</option>
+        </select>
+      </div>
+      <div class="form-group full">
+        <label>Preferred dates</label>
+        <input type="text" id="p-dates" placeholder="e.g. any date in May, 1st–15th June, flexible">
+      </div>
+      <div class="form-group full">
+        <label>Notes (optional)</label>
+        <textarea id="p-notes" placeholder="Anything else useful to know..."></textarea>
+      </div>
+    </div>
+    <button class="btn-submit" onclick="submitPickup()">Post pickup request</button>
+  </div>
+  <div id="pickup-list-header" style="display:none;">
+    <h3 style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:8px;">Current pickup requests</h3>
+  </div>
+  <div id="pickup-list"></div>
+</div>
+
+<!-- CALENDAR -->
+<div id="page-calendar" class="page">
+  <div id="cal-container"></div>
+</div>
+
+<!-- SETUP -->
+<div id="page-setup" class="page">
+  <div class="card">
+    <div class="card-title">One-time setup — about 10 minutes</div>
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body"><strong>Create a new Google Sheet.</strong> Go to <a href="https://sheets.google.com" target="_blank">sheets.google.com</a> and create a blank sheet. Name it "Crew Swap Board".</div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body"><strong>Add two sheets inside it.</strong> Rename the first tab to <strong>Swaps</strong> and create a second tab called <strong>Pickups</strong>.<br><br>
+      In <strong>Swaps</strong> row 1, add these headers: <div class="code-block">Timestamp  Name  Type  Flight  Date  Duration  Pax  Wants  WantsDates  WantsAfter  WantsBefore  AlsoDrop  ALDates  Notes  RowID</div>
+      In <strong>Pickups</strong> row 1, add these headers: <div class="code-block">Timestamp  Name  Flight  Duration  Dates  Notes  RowID</div></div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body"><strong>Open Apps Script</strong> via Extensions → Apps Script. Delete any existing code, paste in the script below and click Save (Cmd+S).
+        <div class="code-block" id="apps-script-code"></div>
+        <button class="copy-btn" onclick="copyScript()">Copy script</button>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body"><strong>Deploy the script.</strong> Click <strong>Deploy → New deployment</strong>. Set type to <strong>Web app</strong>. Set "Who has access" to <strong>Anyone</strong>. Click Deploy, authorise when prompted, then copy the web app URL.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-body"><strong>Paste the URL here</strong> and click Save.
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <input type="text" id="script-url" placeholder="https://script.google.com/macros/s/...">
+          <button class="copy-btn" onclick="saveScriptUrl()" style="padding:8px 14px;font-size:13px;">Save</button>
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">6</div>
+      <div class="step-body"><strong>Optional: Add an Anthropic API key</strong> to enable the "Paste a Facebook post" feature. Get a free key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> — paste it here and click Save. It's stored only on this device.
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <input type="password" id="anthropic-key" placeholder="sk-ant-...">
+          <button class="copy-btn" onclick="saveAnthropicKey()" style="padding:8px 14px;font-size:13px;">Save</button>
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">7</div>
+      <div class="step-body"><strong>Host this file for free.</strong> Go to <a href="https://pages.github.com" target="_blank">pages.github.com</a>, create a free account, upload this HTML file and you'll get a permanent link to share with your crew.</div>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-bg" id="edit-modal">
+  <div class="modal">
+    <div class="modal-title">Edit listing</div>
+    <p style="font-size:13px;color:var(--grey);margin-bottom:1rem;">Update your details below and save.</p>
+    <button class="btn-submit" onclick="goToEditForm()" style="margin-top:0;">Go to edit form</button>
+    <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const APPS_SCRIPT = `function doGet(e) { return handleRequest(e); }
+function doPost(e) { return handleRequest(e); }
+
+function handleRequest(e) {
+  var out = ContentService.createTextOutput();
+  out.setMimeType(ContentService.MimeType.JSON);
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var body = e.postData ? JSON.parse(e.postData.contents) : {};
+    var action = e.parameter.action || body.action || 'get';
+
+    if (action === 'get') {
+      var swapSheet = ss.getSheetByName('Swaps');
+      var pickSheet = ss.getSheetByName('Pickups');
+      var swapData = swapSheet.getDataRange().getValues();
+      var pickData = pickSheet.getDataRange().getValues();
+      var swapHeaders = swapData[0];
+      var pickHeaders = pickData[0];
+      var swaps = swapData.slice(1).map(function(r,i){
+        var o={}; swapHeaders.forEach(function(h,j){o[h]=r[j];}); o._row=i+2; return o;
+      }).filter(function(r){return r.Name;});
+      var picks = pickData.slice(1).map(function(r,i){
+        var o={}; pickHeaders.forEach(function(h,j){o[h]=r[j];}); o._row=i+2; return o;
+      }).filter(function(r){return r.Name || r.name;});
+      out.setContent(JSON.stringify({status:'ok',swaps:swaps,pickups:picks}));
+
+    } else if (action === 'add') {
+      var sheet = ss.getSheetByName(body.sheet || 'Swaps');
+      var rowId = new Date().getTime().toString();
+      if (body.sheet === 'Pickups') {
+        sheet.appendRow([new Date().toISOString(), body.Name, body.Flight, body.Duration, body.Dates, body.Notes, rowId]);
+      } else {
+        sheet.appendRow([new Date().toISOString(), body.Name, body.Type, body.Flight, body.Date, body.Duration, body.Pax, body.Wants, body.WantsDates, body.WantsAfter||'', body.WantsBefore||'', body.AlsoDrop||'', body.ALDates||'', body.Notes, rowId]);
+      }
+      out.setContent(JSON.stringify({status:'ok',rowId:rowId}));
+
+    } else if (action === 'update') {
+      var sheet = ss.getSheetByName(body.sheet || 'Swaps');
+      var data = sheet.getDataRange().getValues();
+      var headers = data[0];
+      var ridCol = headers.indexOf('RowID');
+      for (var i=1;i<data.length;i++) {
+        if (data[i][ridCol] == body.rowId) {
+          if (body.sheet === 'Pickups') {
+            sheet.getRange(i+1,1,1,7).setValues([[data[i][0], body.Name, body.Flight, body.Duration, body.Dates, body.Notes, body.rowId]]);
+          } else {
+            sheet.getRange(i+1,1,1,15).setValues([[data[i][0], body.Name, body.Type, body.Flight, body.Date, body.Duration, body.Pax, body.Wants, body.WantsDates, body.WantsAfter||'', body.WantsBefore||'', body.AlsoDrop||'', body.ALDates||'', body.Notes, body.rowId]]);
+          }
+          break;
+        }
+      }
+      out.setContent(JSON.stringify({status:'ok'}));
+
+    } else if (action === 'delete') {
+      var sheet = ss.getSheetByName(body.sheet || 'Swaps');
+      var data = sheet.getDataRange().getValues();
+      var headers = data[0];
+      var ridCol = headers.indexOf('RowID');
+      var deleted = false;
+      for (var i=1;i<data.length;i++) {
+        if (String(data[i][ridCol]) === String(body.rowId)) { sheet.deleteRow(i+1); deleted = true; break; }
+      }
+      // Fallback: if rowId is a row number and RowID column had no match, delete by row number
+      if (!deleted && !isNaN(body.rowId)) {
+        var rowNum = parseInt(body.rowId);
+        if (rowNum >= 2 && rowNum <= sheet.getLastRow()) { sheet.deleteRow(rowNum); }
+      }
+      out.setContent(JSON.stringify({status:'ok'}));
+    }
+  } catch(err) {
+    out.setContent(JSON.stringify({status:'error',message:err.toString()}));
+  }
+  return out;
+}`;
+
+document.getElementById('apps-script-code').textContent = APPS_SCRIPT;
+
+let SCRIPT_URL = localStorage.getItem('crewswap_url') || '';
+if (SCRIPT_URL) document.getElementById('script-url').value = SCRIPT_URL;
+
+let ANTHROPIC_KEY = localStorage.getItem('crewswap_anthropic_key') || '';
+if (ANTHROPIC_KEY) document.getElementById('anthropic-key').value = ANTHROPIC_KEY;
+
+let allTrips = [], allPickups = [], currentFilter = 'all', tripType = 'Drop';
+let editingTrip = null;
+
+// ── NAV ───────────────────────────────────────────────────────────────────
+function showPage(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  if (el) el.classList.add('active');
+  if (id === 'board') loadData();
+  if (id === 'pickup') { loadData(); renderPickups(); }
+  if (id === 'calendar') { loadData().then(() => renderCalendar()); }
+}
+
+function setType(type, el) {
+  tripType = type;
+  document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  const isSwap = type === 'Swap';
+  document.getElementById('wants-group').style.display = isSwap ? 'flex' : 'none';
+  document.getElementById('wants-date-group').style.display = isSwap ? 'flex' : 'none';
+  document.getElementById('also-drop-group').style.display = isSwap ? 'flex' : 'none';
+  if (!isSwap) document.getElementById('f-also-drop').checked = false;
+}
+
+function setFilter(f, el) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  renderBoard();
+}
+
+// ── PICKUP FB PARSER ─────────────────────────────────────────────────────
+function showPickupPaste() {
+  document.getElementById('pickup-paste-area').style.display = 'block';
+  document.getElementById('pickup-fail-card').style.display = 'none';
+  document.getElementById('pickup-post-text').focus();
+}
+
+function hidePickupPaste() {
+  document.getElementById('pickup-paste-area').style.display = 'none';
+  document.getElementById('pickup-post-text').value = '';
+  document.getElementById('pickup-parse-status').style.display = 'none';
+}
+
+function pickupPrompt() {
+  const today = new Date().toISOString().slice(0, 10);
+  return `You are helping parse a Qantas cabin crew Facebook post where someone is looking to PICK UP a trip.
+Today's date is ${today}.
+
+QF2 = Sydney↔Singapore (4 days). QF10 = Sydney↔Perth (5 or 6 day, temporarily 6 or 7 day).
+
+Return ONLY valid JSON, no other text, no markdown:
+{
+  "flight": "QF2" or "QF10" or "Any" if either is fine or not specified,
+  "duration": "5 day" or "6 day" or "7 day" or "" if QF2 or not specified,
+  "dates": "plain English description of preferred dates, e.g. 'any date in May' or 'flexible' or '1st-15th June'",
+  "notes": "any other detail in plain English, max 1 sentence",
+  "confidence": "high" or "medium" or "low",
+  "summary": "one sentence summary of what they want to pick up"
+}`;
+}
+
+function applyPickupResult(parsed) {
+  if (parsed.confidence === 'low') {
+    document.getElementById('pickup-fail-card').style.display = 'block';
+    document.getElementById('pickup-fail-body').textContent = parsed.summary || "Couldn't extract details — please fill in manually.";
+    return;
+  }
+  if (parsed.flight) document.getElementById('p-flight').value = parsed.flight;
+  if (parsed.duration) document.getElementById('p-duration').value = parsed.duration;
+  if (parsed.dates) document.getElementById('p-dates').value = parsed.dates;
+  if (parsed.notes) document.getElementById('p-notes').value = parsed.notes;
+  showToast(parsed.confidence === 'medium' ? 'Filled in — please double-check' : 'Details filled in — check and confirm below');
+  document.getElementById('p-name').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  document.getElementById('p-name').focus();
+}
+
+async function parsePickupPost() {
+  const text = document.getElementById('pickup-post-text').value.trim();
+  if (!text) { showToast('Please paste a post first'); return; }
+  if (!ANTHROPIC_KEY) {
+    document.getElementById('pickup-fail-card').style.display = 'block';
+    document.getElementById('pickup-fail-body').textContent = 'No Anthropic API key saved — add one in Setup.';
+    return;
+  }
+  const btn = document.getElementById('pickup-read-btn');
+  const status = document.getElementById('pickup-parse-status');
+  btn.disabled = true; btn.textContent = 'Reading...';
+  status.style.display = 'block'; status.textContent = 'Asking Claude to read your post...';
+  document.getElementById('pickup-fail-card').style.display = 'none';
+  try {
+    const parsed = await callAnthropicAPI([{ role: 'user', content: pickupPrompt() + '\n\nPost:\n"""\n' + text + '\n"""' }]);
+    status.style.display = 'none';
+    hidePickupPaste();
+    applyPickupResult(Array.isArray(parsed) ? parsed[0] : parsed);
+  } catch(err) {
+    status.style.display = 'none';
+    document.getElementById('pickup-fail-card').style.display = 'block';
+    document.getElementById('pickup-fail-body').textContent = 'Error: ' + (err.message || 'something went wrong.');
+  }
+  btn.disabled = false; btn.textContent = 'Read post';
+}
+
+async function parsePickupImage(input) {
+  const file = input.files[0];
+  if (!file) return;
+  input.value = '';
+  if (!ANTHROPIC_KEY) {
+    document.getElementById('pickup-fail-card').style.display = 'block';
+    document.getElementById('pickup-fail-body').textContent = 'No Anthropic API key saved — add one in Setup.';
+    return;
+  }
+  document.getElementById('pickup-fail-card').style.display = 'none';
+  document.getElementById('pickup-image-progress').style.display = 'block';
+  document.getElementById('pickup-image-btn').disabled = true;
+  try {
+    const base64 = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(',')[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+    const parsed = await callAnthropicAPI([{
+      role: 'user',
+      content: [
+        { type: 'image', source: { type: 'base64', media_type: file.type || 'image/jpeg', data: base64 } },
+        { type: 'text', text: pickupPrompt() + '\n\nRead the Facebook post in the image above.' }
+      ]
+    }]);
+    document.getElementById('pickup-image-progress').style.display = 'none';
+    applyPickupResult(Array.isArray(parsed) ? parsed[0] : parsed);
+  } catch(err) {
+    document.getElementById('pickup-image-progress').style.display = 'none';
+    document.getElementById('pickup-fail-card').style.display = 'block';
+    document.getElementById('pickup-fail-body').textContent = 'Error: ' + (err.message || 'something went wrong.');
+  }
+  document.getElementById('pickup-image-btn').disabled = false;
+}
+
+function saveAnthropicKey() {
+  const key = document.getElementById('anthropic-key').value.trim();
+  if (!key.startsWith('sk-ant-')) { showToast("That doesn't look like a valid Anthropic key"); return; }
+  ANTHROPIC_KEY = key;
+  localStorage.setItem('crewswap_anthropic_key', key);
+  showToast('API key saved!');
+}
+
+function showFBPaste() {
+  document.getElementById('fb-paste-area').style.display = 'block';
+  document.getElementById('fb-fail-card').style.display = 'none';
+  document.getElementById('fb-post-text').focus();
+}
+
+function hideFBPaste() {
+  document.getElementById('fb-paste-area').style.display = 'none';
+  document.getElementById('fb-post-text').value = '';
+  document.getElementById('fb-parse-status').style.display = 'none';
+}
+
+function fbPromptInstructions() {
+  const today = new Date();
+  const todayISO = today.toISOString().slice(0, 10);
+  const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const todayDay = dayNames[today.getDay()];
+
+  // Pre-calculate the next occurrence of each day name so Claude doesn't have to
+  function nextWeekday(targetDay) {
+    const diff = (targetDay - today.getDay() + 7) % 7 || 7;
+    const d = new Date(today);
+    d.setDate(d.getDate() + diff);
+    return d.toISOString().slice(0, 10);
+  }
+  const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
+  const tomorrowISO = tomorrow.toISOString().slice(0, 10);
+  const dayRef = dayNames.map((name, i) => `"this ${name}" = ${nextWeekday(i)}`).join(', ');
+
+  return `You are helping parse a Qantas cabin crew Facebook post about trip swaps.
+Today is ${todayISO} (${todayDay}). Tomorrow is ${tomorrowISO}.
+Relative day reference guide: ${dayRef}.
+Use these exact dates when the post says "this Sunday", "next Monday", "tomorrow" etc — do not calculate yourself.
+
+The crew fly two routes:
+- QF2: Sydney↔Singapore, always 4 days
+- QF10: Sydney↔Perth, either 5 day or 6 day (temporarily 6 or 7 day)
+- SBY: Standby, 3 day block — can only swap with another Standby
+
+The post may mention ONE trip or MULTIPLE trips. Extract ALL trips mentioned.
+Return ONLY a valid JSON array, no other text, no markdown.
+
+Each trip in the array must have this structure:
+{
+  "type": "Drop" or "Swap" or "unknown",
+  "flight": "QF2" or "QF10" or "SBY" or "",
+  "date": "YYYY-MM-DD" or "" if not mentioned or unclear,
+  "duration": "4 day" or "5 day" or "6 day" or "7 day" or "3 day" or "" if unclear,
+  "pax": "" or "Paxing out" or "Paxing home",
+  "wants": "QF2" or "QF10" or "QF2 or QF10" or "" if dropping,
+  "alsoDrop": true if they say "or drop", "happy to drop if no swap", "or just drop it", "or move to [date]", "or swap to [date]" — i.e. they have a preferred outcome but will also accept a drop or a different date, otherwise false,
+  "wantsDate": comma-separated YYYY-MM-DD dates if specific dates are given e.g. "2026-04-06,2026-04-07,2026-04-08", or "" if flexible or not mentioned,
+  "wantsAfter": "YYYY-MM-DD" if they say "after [date]", "later than [date]", "any day after", "later" (relative to their trip date) — the day after the reference date,
+  "wantsBefore": "YYYY-MM-DD" if they say "before [date]", "earlier than [date]" — the day before the reference date,
+  "notes": "any other relevant detail in plain English, max 1 sentence",
+  "confidence": "high" or "medium" or "low",
+  "summary": "one sentence plain English summary of what you understood for this trip"
+}
+
+Rules:
+- IMPORTANT: This form is for posting YOUR OWN trip. If the post is asking whether someone ELSE wants to drop or swap (e.g. "would anyone like to drop?", "does anyone have a QF2 to drop?", "looking for someone to drop") — the poster does not have a trip to offer, so return an empty array []. They should use the Pick Up a Trip tab instead.
+- "Drop" or "to drop" means the person wants to give the trip away — it does NOT mean paxing. Only set pax to "Paxing out" or "Paxing home" if the post explicitly uses the word "pax" or "positioning".
+- If they say "drop" or "give away" or "anyone want MY trip" with no mention of wanting something back → type is Drop
+- If they mention wanting something in return → type is Swap. This includes phrases like "[flight] for [other date/flight]", "swap for", "in exchange for", "looking for", "want a [flight]" — the word "for" followed by a date or flight strongly implies a Swap.
+- If they want to move their trip to a different date on the same route (e.g. "move my SIN to 27th"), set wants to the same flight as the offered flight — e.g. if offering QF2, set wants to "QF2"
+- If the post says "drop or swap" with no specific date — set type to Swap, alsoDrop to true, wantsDate blank
+- If multiple preferred dates are given for the wanted trip (e.g. "6, 7 or 8 April"), put them ALL as comma-separated ISO dates in wantsDate e.g. "2026-04-06,2026-04-07,2026-04-08" — do NOT put them in notes
+- If the post says "any day later", "later date", "after this" or similar with no specific date, set wantsAfter to the day after their offered trip date
+- If the post says "later" relative to a specific date, set wantsAfter to the day after that date
+- If the post says "before" relative to a specific date, set wantsBefore to the day before that date
+- If the post lists multiple dates for the same flight offered, create one entry per date
+- If "on or around" or "flexible" or "±" is mentioned for a date, put the exact date and add "flexible ±1-2 days" to notes
+- If date is completely vague (e.g. "early April" with no specific dates at all) put "" for wantsDate and capture it in notes
+- If duration is not mentioned and flight is QF2, assume 4 day. If QF10 and duration is not mentioned, leave duration blank — do NOT assume 4 day.
+- If a pax note applies to one specific date (e.g. "charter with pax out"), apply it only to that trip entry
+- Infer the year from context — if the month mentioned has already passed this year, use next year.
+- If you cannot find any trips, return an empty array [].`;
+}
+
+// ── MULTI-TRIP QUEUE ──────────────────────────────────────────────────────
+let fbTripQueue = [];
+let fbQueueTotal = 0;
+
+function loadNextQueuedTrip() {
+  if (!fbTripQueue.length) {
+    document.getElementById('fb-queue-banner').style.display = 'none';
+    return;
+  }
+  const trip = fbTripQueue[0];
+  const remaining = fbTripQueue.length;
+  const done = fbQueueTotal - remaining;
+
+  document.getElementById('fb-queue-banner').style.display = 'block';
+  document.getElementById('fb-queue-label').textContent =
+    `Trip ${done + 1} of ${fbQueueTotal} — ${trip.summary || 'check details below'}`;
+
+  fillFormFromParsed(trip);
+}
+
+function skipQueuedTrip() {
+  fbTripQueue.shift();
+  if (fbTripQueue.length) {
+    loadNextQueuedTrip();
+  } else {
+    document.getElementById('fb-queue-banner').style.display = 'none';
+    showToast('All trips skipped');
+  }
+}
+
+function fillFormFromParsed(parsed) {
+  // JS-level fallback: QF2 is always 4 day
+  if (parsed.flight === 'QF2' && !parsed.duration) parsed.duration = '4 day';
+
+  if (parsed.flight) document.getElementById('f-flight').value = parsed.flight;
+  if (parsed.date) document.getElementById('f-date').value = parsed.date;
+  if (parsed.duration) document.getElementById('f-duration').value = parsed.duration;
+  if (parsed.pax) document.getElementById('f-pax').value = parsed.pax;
+  if (parsed.notes) document.getElementById('f-notes').value = parsed.notes;
+
+  const isSwap = parsed.type === 'Swap';
+  tripType = parsed.type || 'Drop';
+  document.querySelectorAll('.toggle-btn').forEach((b, i) => b.classList.toggle('active', i === (isSwap ? 1 : 0)));
+  document.getElementById('wants-group').style.display = isSwap ? 'flex' : 'none';
+  document.getElementById('wants-date-group').style.display = isSwap ? 'flex' : 'none';
+  if (isSwap && parsed.wants) document.getElementById('f-wants').value = parsed.wants;
+  if (isSwap && parsed.wantsDate) document.getElementById('f-wants-date').value = parsed.wantsDate;
+  if (isSwap && parsed.wantsAfter) document.getElementById('f-wants-after').value = parsed.wantsAfter;
+  if (isSwap && parsed.wantsBefore) document.getElementById('f-wants-before').value = parsed.wantsBefore;
+  if (isSwap && parsed.alsoDrop) {
+    document.getElementById('f-also-drop').checked = true;
+    document.getElementById('also-drop-group').style.display = 'flex';
+  }
+
+  // Flag missing duration for QF10
+  const durationEl = document.getElementById('f-duration');
+  if (parsed.flight === 'QF10' && !parsed.duration) {
+    durationEl.style.borderColor = 'var(--red)';
+    durationEl.style.boxShadow = '0 0 0 3px rgba(239,68,68,.15)';
+    setTimeout(() => {
+      durationEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      durationEl.focus();
+    }, 300);
+    showToast('⚠️ QF10 duration not found — please select 5 or 6 day');
+  } else {
+    durationEl.style.borderColor = '';
+    durationEl.style.boxShadow = '';
+    document.getElementById('f-name').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    document.getElementById('f-name').focus();
+  }
+}
+
+// Clear duration highlight when user selects a value
+document.getElementById('f-duration').addEventListener('change', function() {
+  this.style.borderColor = '';
+  this.style.boxShadow = '';
+});
+
+function applyFBResult(tripsArray) {
+  // Filter out unknowns and low-confidence
+  const valid = tripsArray.filter(t => t.type !== 'unknown' && t.confidence !== 'low');
+
+  if (!valid.length) {
+    const first = tripsArray[0];
+    document.getElementById('fb-fail-card').style.display = 'block';
+    document.getElementById('fb-fail-body').textContent = tripsArray.length === 0
+      ? "This post looks like you're asking someone else to drop — try the Pick Up a Trip tab instead."
+      : (first && first.summary) || "Couldn't extract trip details — please fill in manually.";
+    return;
+  }
+
+  if (valid.length === 1) {
+    // Single trip — just fill the form as before
+    fillFormFromParsed(valid[0]);
+    showToast(valid[0].confidence === 'medium' ? 'Filled in — please double-check the details' : 'Details filled in — check and confirm below');
+  } else {
+    // Multiple trips — set up queue
+    fbTripQueue = [...valid];
+    fbQueueTotal = valid.length;
+    loadNextQueuedTrip();
+    showToast(`${valid.length} trips found — posting one at a time`);
+  }
+}
+
+async function callAnthropicAPI(messages) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': ANTHROPIC_KEY,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1000, messages })
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error?.message || 'API error');
+  const raw = data.content.map(c => c.text || '').join('').replace(/```json|```/g, '').trim();
+  console.log('[FB parser] raw response:', raw);
+  const parsed = JSON.parse(raw);
+  // Always return an array
+  return Array.isArray(parsed) ? parsed : [parsed];
+}
+
+async function parseFBPost() {
+  const text = document.getElementById('fb-post-text').value.trim();
+  if (!text) { showToast('Please paste a post first'); return; }
+  if (!ANTHROPIC_KEY) {
+    document.getElementById('fb-fail-card').style.display = 'block';
+    document.getElementById('fb-fail-body').textContent = 'No Anthropic API key saved — add one in the Setup tab to use this feature.';
+    return;
+  }
+
+  const btn = document.getElementById('fb-read-btn');
+  const status = document.getElementById('fb-parse-status');
+  btn.disabled = true; btn.textContent = 'Reading...';
+  status.style.display = 'block'; status.textContent = 'Asking Claude to read your post...';
+  document.getElementById('fb-fail-card').style.display = 'none';
+
+  try {
+    const prompt = fbPromptInstructions() + `\n\nPost:\n"""\n${text}\n"""`;
+    const parsed = await callAnthropicAPI([{ role: 'user', content: prompt }]);
+    status.style.display = 'none';
+    hideFBPaste();
+    applyFBResult(parsed);
+  } catch (err) {
+    status.style.display = 'none';
+    document.getElementById('fb-fail-card').style.display = 'block';
+    document.getElementById('fb-fail-body').textContent = 'Error: ' + (err.message || 'something went wrong. Check your API key in Setup.');
+    console.error('FB parse error:', err);
+  }
+
+  btn.disabled = false; btn.textContent = 'Read post';
+}
+
+async function parseFBImage(input) {
+  const file = input.files[0];
+  if (!file) return;
+  input.value = '';
+
+  if (!ANTHROPIC_KEY) {
+    document.getElementById('fb-fail-card').style.display = 'block';
+    document.getElementById('fb-fail-body').textContent = 'No Anthropic API key saved — add one in the Setup tab to use this feature.';
+    return;
+  }
+
+  document.getElementById('fb-fail-card').style.display = 'none';
+  document.getElementById('fb-image-progress').style.display = 'block';
+  document.getElementById('fb-image-btn').disabled = true;
+
+  try {
+    // Convert image to base64
+    const base64 = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(',')[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
+    const mediaType = file.type || 'image/jpeg';
+    const parsed = await callAnthropicAPI([{
+      role: 'user',
+      content: [
+        { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } },
+        { type: 'text', text: fbPromptInstructions() + '\n\nRead the Facebook post in the image above and extract the trip details.' }
+      ]
+    }]);
+
+    document.getElementById('fb-image-progress').style.display = 'none';
+    applyFBResult(parsed);
+  } catch (err) {
+    document.getElementById('fb-image-progress').style.display = 'none';
+    document.getElementById('fb-fail-card').style.display = 'block';
+    document.getElementById('fb-fail-body').textContent = 'Error: ' + (err.message || 'something went wrong. Check your API key in Setup.');
+    console.error('FB image parse error:', err);
+  }
+
+  document.getElementById('fb-image-btn').disabled = false;
+}
+
+// ── DATA ──────────────────────────────────────────────────────────────────
+async function loadData() {
+  if (!SCRIPT_URL) {
+    document.getElementById('board-list').innerHTML = '<div class="empty">Setup required — click the Setup tab to connect your Google Sheet.</div>';
+    return;
+  }
+  try {
+    const res = await fetch(SCRIPT_URL + '?action=get');
+    const json = await res.json();
+    if (json.status === 'ok') {
+      allTrips = (json.swaps || []).map(processTrip);
+      allPickups = (json.pickups || []);
+      console.log('[SwapBoard] loaded', allTrips.length, 'swaps,', allPickups.length, 'pickups', allPickups);
+      // Run cleanup once per day
+      const today = new Date().toISOString().slice(0, 10);
+      const lastCleanup = localStorage.getItem('crewswap_last_cleanup');
+      if (lastCleanup !== today) {
+        await autoCleanup(allTrips, allPickups);
+        localStorage.setItem('crewswap_last_cleanup', today);
+        // Reload fresh data after cleanup
+        const res2 = await fetch(SCRIPT_URL + '?action=get');
+        const json2 = await res2.json();
+        if (json2.status === 'ok') {
+          allTrips = (json2.swaps || []).map(processTrip);
+          allPickups = (json2.pickups || []);
+        }
+      }
+      findMatches();
+      renderBoard();
+      updateStats();
+      renderPickups();
+    }
+  } catch(e) {
+    document.getElementById('board-list').innerHTML = '<div class="empty">Could not load data. Check your script URL in Setup.</div>';
+  }
+}
+
+async function autoCleanup(swaps, pickups) {
+  const today = new Date().toISOString().slice(0, 10);
+
+  const deletePromises = [];
+
+  // Check each swap/drop
+  for (const t of swaps) {
+    const rowId = t.RowID || t._row;
+    if (!rowId) continue;
+    let shouldDelete = false;
+
+    // Trip date is in the past
+    if (t.Date) {
+      const tripDate = toLocalISO(t.Date);
+      if (tripDate < today) shouldDelete = true;
+    }
+
+    // All WantsDates are in the past
+    if (!shouldDelete && t.WantsDates) {
+      const dates = String(t.WantsDates).split(',').map(s => s.trim()).filter(s => /^\d{4}-\d{2}-\d{2}/.test(s));
+      if (dates.length && dates.every(d => d.slice(0, 10) < today)) shouldDelete = true;
+    }
+
+    // WantsAfter date is in the past (no future trips could ever match)
+    if (!shouldDelete && t.WantsAfter) {
+      const wa = String(t.WantsAfter).slice(0, 10);
+      if (/^\d{4}-\d{2}-\d{2}$/.test(wa) && wa < today) shouldDelete = true;
+    }
+
+    if (shouldDelete) {
+      deletePromises.push(
+        fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'delete', rowId, sheet: 'Swaps' }) }).catch(() => {})
+      );
+    }
+  }
+
+  // Check each pickup
+  for (const p of pickups) {
+    const rowId = p.RowID || p._row;
+    if (!rowId) continue;
+
+    const dates = p.Dates ? extractPickupDates(p.Dates) : [];
+    if (dates.length) {
+      // Has specific dates — delete if all in the past
+      if (dates.every(d => d < today)) {
+        deletePromises.push(
+          fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'delete', rowId, sheet: 'Pickups' }) }).catch(() => {})
+        );
+      }
+    } else {
+      // Vague/flexible dates — delete after 6 weeks
+      if (p.Timestamp) {
+        const ts = new Date(p.Timestamp);
+        const ageWeeks = (Date.now() - ts) / (86400000 * 7);
+        if (ageWeeks >= 6) {
+          deletePromises.push(
+            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'delete', rowId, sheet: 'Pickups' }) }).catch(() => {})
+          );
+        }
+      }
+    }
+  }
+
+  if (deletePromises.length) await Promise.all(deletePromises);
+}
+
+function processTrip(t) {
+  const ts = t.Timestamp ? new Date(t.Timestamp) : null;
+  const daysLeft = ts ? Math.ceil(42 - (Date.now() - ts) / 86400000) : 42;
+  return { ...t, daysLeft, expired: daysLeft <= 0, expiring: daysLeft > 0 && daysLeft <= 7, matched: false, matchNote: '' };
+}
+
+// ── AL CLASH CHECK ────────────────────────────────────────────────────────
+// Returns true if the trip (starting on tripDate, lasting durationStr days)
+// overlaps with any AL date the poster has stored.
+// Rule: a trip can only be picked up/swapped onto if it finishes the day
+// before AL starts OR starts the day after AL finishes.
+// Overlap = any trip day falls on an AL day.
+function tripDays(dateStr, durationStr) {
+  if (!dateStr) return [];
+  const start = new Date(dateStr);
+  if (isNaN(start)) return [];
+  const n = parseInt(durationStr) || 1;
+  const days = [];
+  for (let i = 0; i < n; i++) {
+    const d = new Date(start);
+    d.setDate(d.getDate() + i);
+    days.push(d.toISOString().slice(0, 10));
+  }
+  return days;
+}
+
+function alClash(trip, alDatesStr) {
+  // alDatesStr is a comma-separated list of ISO dates from the poster's roster
+  if (!alDatesStr) return false;
+  const alSet = new Set(alDatesStr.split(',').map(s => s.trim()).filter(Boolean));
+  if (!alSet.size) return false;
+  const days = tripDays(trip.Date, trip.Duration);
+  return days.some(d => alSet.has(d));
+}
+
+// ── MATCH LOGIC ───────────────────────────────────────────────────────────
+function fmtDate(d) {
+  if (!d) return '';
+  const dt = new Date(d);
+  if (isNaN(dt)) return d;
+  // Use local date to avoid UTC offset shifting the displayed date
+  return dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'Europe/London' });
+}
+
+function tripDesc(t) {
+  const parts = [t.Flight];
+  if (t.Date) parts.push(fmtDate(t.Date));
+  if (t.Duration) parts.push(t.Duration);
+  return parts.join(' · ');
+}
+
+function isQF(f) { return f && (f.includes('QF2') || f.includes('QF10')); }
+
+function toLocalISO(dateVal) {
+  if (!dateVal) return '';
+  const d = new Date(dateVal);
+  if (isNaN(d)) return String(dateVal).slice(0, 10);
+  // Use London timezone to match how crew enter dates
+  const parts = d.toLocaleDateString('en-GB', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'Europe/London' }).split('/');
+  return `${parts[2]}-${parts[1]}-${parts[0]}`;
+}
+
+function sameDate(d1, d2) {
+  if (!d1 || !d2) return false;
+  return toLocalISO(d1) === toLocalISO(d2);
+}
+
+function flightMatch(wantsFlight, offerFlight) {
+  // Does what person wants match what's being offered?
+  if (!wantsFlight || !offerFlight) return false;
+  if (wantsFlight === 'QF2 or QF10') return offerFlight === 'QF2' || offerFlight === 'QF10';
+  return wantsFlight === offerFlight;
+}
+
+function dateMatch(wantsDate, wantsAfter, wantsBefore, offerDate) {
+  // No offered date — can't match a date constraint
+  if (!offerDate) return (!wantsDate && !wantsAfter && !wantsBefore);
+
+  const offerISO = toLocalISO(offerDate);
+
+  // wantsAfter: offered date must be strictly after this
+  if (wantsAfter) {
+    const afterISO = toLocalISO(wantsAfter);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(afterISO) && offerISO <= afterISO) return false;
+  }
+
+  // wantsBefore: offered date must be strictly before this
+  if (wantsBefore) {
+    const beforeISO = toLocalISO(wantsBefore);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(beforeISO) && offerISO >= beforeISO) return false;
+  }
+
+  // wantsDate: must match one of the specific dates (if provided)
+  if (wantsDate) {
+    const candidates = String(wantsDate).split(',').map(s => s.trim()).filter(Boolean);
+    const isoRe = /^\d{4}-\d{2}-\d{2}/;
+    const allISO = candidates.every(c => isoRe.test(c));
+    if (allISO && candidates.length) {
+      return candidates.some(c => sameDate(c, offerISO));
+    }
+    // Free text — treat as flexible
+    return true;
+  }
+
+  return true;
+}
+
+// Extract specific ISO dates from a free-text pickup Dates field.
+// Returns array of YYYY-MM-DD strings if specific dates found, empty array if vague/flexible.
+function extractPickupDates(datesText) {
+  if (!datesText) return [];
+  const results = [];
+  const now = new Date();
+  const MONTHS = {jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
+
+  // Match DD/MM or D/M
+  const re1 = /\b(\d{1,2})\/(\d{1,2})\b/g;
+  let m;
+  while ((m = re1.exec(datesText)) !== null) {
+    const day = parseInt(m[1]), mo = parseInt(m[2]) - 1;
+    if (day >= 1 && day <= 31 && mo >= 0 && mo <= 11) {
+      let year = now.getFullYear();
+      const candidate = new Date(year, mo, day);
+      if ((candidate - now) / 86400000 < -60) year++;
+      results.push(`${year}-${String(mo+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`);
+    }
+  }
+
+  // Match "1st April", "2nd May", "3 June" etc
+  const re2 = /\b(\d{1,2})(?:st|nd|rd|th)?\s+(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\b/gi;
+  while ((m = re2.exec(datesText)) !== null) {
+    const day = parseInt(m[1]);
+    const mo = MONTHS[m[2].toLowerCase().slice(0,3)];
+    if (day >= 1 && day <= 31 && mo !== undefined) {
+      let year = now.getFullYear();
+      const candidate = new Date(year, mo, day);
+      if ((candidate - now) / 86400000 < -60) year++;
+      results.push(`${year}-${String(mo+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`);
+    }
+  }
+
+  // Match YYYY-MM-DD
+  const re3 = /\b(\d{4})-(\d{2})-(\d{2})\b/g;
+  while ((m = re3.exec(datesText)) !== null) results.push(m[0]);
+
+  return [...new Set(results)]; // deduplicate
+}
+
+function findMatches() {
+  allTrips.forEach(t => { t.matched = false; t.matchNote = ''; t.matchWith = ''; t.chainNote = ''; t.inChain = false; });
+  const active = allTrips.filter(t => !t.expired);
+
+  // ── DIRECT MATCHES ────────────────────────────────────────────────────────
+
+  // Swap vs Swap (including QF10 duration swaps)
+  for (let i = 0; i < active.length; i++) {
+    for (let j = i + 1; j < active.length; j++) {
+      const a = active[i], b = active[j];
+      if (a.Type !== 'Swap' || b.Type !== 'Swap') continue;
+      let noteA = '', noteB = '';
+      const dA = tripDesc(a), dB = tripDesc(b);
+
+      // QF10 duration swap
+      if (a.Flight === 'QF10' && b.Flight === 'QF10' && a.Duration && b.Duration && a.Duration !== b.Duration) {
+        const aDateOk = dateMatch(a.WantsDates, a.WantsAfter, a.WantsBefore, b.Date);
+        const bDateOk = dateMatch(b.WantsDates, b.WantsAfter, b.WantsBefore, a.Date);
+        if (aDateOk && bDateOk) {
+          noteA = 'Duration swap with ' + b.Name + ' — your ' + dA + ' ↔ their ' + dB;
+          noteB = 'Duration swap with ' + a.Name + ' — your ' + dB + ' ↔ their ' + dA;
+        }
+      }
+      // Regular swap
+      else if (isQF(a.Flight) && isQF(b.Flight)) {
+        // Both must have stated what they want — blank Wants means we can't confirm compatibility
+        const aWantsB = a.Wants && flightMatch(a.Wants, b.Flight);
+        const bWantsA = b.Wants && flightMatch(b.Wants, a.Flight);
+        const aDateOk = dateMatch(a.WantsDates, a.WantsAfter, a.WantsBefore, b.Date);
+        const bDateOk = dateMatch(b.WantsDates, b.WantsAfter, b.WantsBefore, a.Date);
+        if (aWantsB && bWantsA && aDateOk && bDateOk) {
+          noteA = 'Swap match with ' + b.Name + ' — your ' + dA + ' ↔ their ' + dB;
+          noteB = 'Swap match with ' + a.Name + ' — your ' + dB + ' ↔ their ' + dA;
+        }
+      }
+
+      if (noteA) {
+        const aReceivesB = alClash(b, a.ALDates);
+        const bReceivesA = alClash(a, b.ALDates);
+        if (aReceivesB) noteA += ' ⚠️ Check AL — their trip may overlap your leave';
+        if (bReceivesA) noteB += ' ⚠️ Check AL — their trip may overlap your leave';
+        a.matched = true; b.matched = true;
+        a.matchNote = a.matchNote ? a.matchNote + ' · Also: ' + noteA : noteA;
+        a.matchWith = a.matchWith ? a.matchWith + ', ' + b.Name : b.Name;
+        b.matchNote = b.matchNote ? b.matchNote + ' · Also: ' + noteB : noteB;
+        b.matchWith = b.matchWith ? b.matchWith + ', ' + a.Name : a.Name;
+      }
+    }
+  }
+
+  // Drop vs Pickup — also matches Swap entries where AlsoDrop is true
+  allPickups.forEach(p => {
+    const pickupDates = extractPickupDates(p.Dates);
+
+    active.filter(t => t.Type === 'Drop' || t.AlsoDrop === 'true' || t.AlsoDrop === true).forEach(t => {
+      const wantsFlight = p.Flight === 'Any' || flightMatch(p.Flight, t.Flight);
+      const wantsDuration = !p.Duration || p.Duration === t.Duration;
+
+      // Date check: if pickup has parseable specific dates, drop must be on one of them
+      let wantsDate = true;
+      if (pickupDates.length) {
+        const offerISO = t.Date ? toLocalISO(t.Date) : '';
+        wantsDate = pickupDates.some(d => sameDate(d, offerISO));
+      }
+
+      if (wantsFlight && wantsDuration && wantsDate) {
+        t.matched = true;
+        p.matched = true;
+        let note = p.Name + ' is looking to pick up your ' + tripDesc(t);
+        if (alClash(t, p.ALDates)) note += ' ⚠️ Check AL — this trip may overlap their leave';
+        t.matchNote = t.matchNote ? t.matchNote + ' · Also: ' + note : note;
+        t.matchWith = t.matchWith ? t.matchWith + ', ' + p.Name : p.Name;
+        p.matchNote = p.matchNote ? p.matchNote + ' · Also: ' + tripDesc(t) + ' from ' + t.Name : tripDesc(t) + ' from ' + t.Name;
+      }
+    });
+  });
+
+  // ── CHAIN MATCHING ── disabled until date matching is reliable enough ─────
+  // Chain matching requires exact date matches at every link to avoid false
+  // positives. Re-enable once WantsDates is consistently stored as ISO dates.
+}
+
+
+// ── RENDER BOARD ──────────────────────────────────────────────────────────
+function renderBoard() {
+  let trips = allTrips.filter(t => {
+    if (currentFilter === 'drop') return t.Type === 'Drop' && !t.expired;
+    if (currentFilter === 'swap') return t.Type === 'Swap' && !t.expired;
+    if (currentFilter === 'matched') return t.matched && !t.expired;
+    if (currentFilter === 'pickup') return false; // only show pickup cards
+    return !t.expired;
+  });
+
+  // Include pickups on the board
+  const showPickups = currentFilter === 'all' || currentFilter === 'matched' || currentFilter === 'pickup';
+  const pickupsForBoard = showPickups ? allPickups : [];
+
+  if (!trips.length && !pickupsForBoard.length) {
+    document.getElementById('board-list').innerHTML = '<div class="empty">No trips found.</div>';
+    return;
+  }
+
+  // Sort trips: matched first, then by trip date ascending
+  trips.sort((a, b) => {
+    if (b.matched !== a.matched) return b.matched - a.matched;
+    const da = a.Date ? new Date(a.Date) : new Date('9999');
+    const db = b.Date ? new Date(b.Date) : new Date('9999');
+    return da - db;
+  });
+
+  const tripCards = trips.map(t => {
+    const initials = t.Name ? t.Name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : '??';
+    const dateStr = fmtDate(t.Date);
+    const daysStr = t.expiring ? t.daysLeft + 'd left' : t.daysLeft + ' days left';
+    const paxStr = t.Pax ? ' · ' + t.Pax : '';
+    const classes = ['trip-card', t.matched ? 'matched' : '', t.expiring ? 'expiring' : ''].filter(Boolean).join(' ');
+    const rowId = t.RowID || t._row;
+
+    return `<div class="${classes}">
+      <div class="avatar">${initials}</div>
+      <div class="trip-main">
+        <div class="trip-top">
+          <span class="trip-name">${t.Name}</span>
+          <span class="badge badge-${t.AlsoDrop === 'true' || t.AlsoDrop === true ? 'swapdrop' : t.Type.toLowerCase()}">${t.AlsoDrop === 'true' || t.AlsoDrop === true ? 'Swap or Drop' : t.Type}</span>
+          ${t.Flight ? `<span class="badge badge-flight">${t.Flight}</span>` : ''}
+          ${t.matched ? '<span class="badge badge-match">Match found</span>' : ''}
+          ${t.inChain ? '<span class="badge badge-chain">Part of a chain</span>' : ''}
+          ${t.expiring ? '<span class="badge badge-expiring">Expiring soon</span>' : ''}
+        </div>
+        <div class="trip-details">
+          ${dateStr ? `<span>${dateStr}</span>` : ''}
+          ${t.Duration ? `<span>${t.Duration}</span>` : ''}
+          ${paxStr ? `<span>${paxStr}</span>` : ''}
+        </div>
+        ${t.Type === 'Swap' && t.Wants ? `<div class="trip-wants">Wants: ${t.Wants}${
+          t.WantsDates
+            ? ' · ' + t.WantsDates.split(',').map(d => fmtDate(d.trim())).filter(Boolean).join(' or ')
+            : t.WantsAfter
+              ? ' · later'
+              : t.WantsBefore
+                ? ' · earlier'
+                : ''
+        }</div>` : ''}
+        ${t.Notes ? `<div class="trip-wants">${t.Notes}</div>` : ''}
+        ${t.matched && t.matchNote && !t.inChain ? `<div class="match-note">${t.matchNote}</div>` : ''}
+        ${t.inChain && t.chainNote ? `<div class="match-note" style="color:#5B21B6;">🔗 ${t.chainNote}</div>` : ''}
+      </div>
+      <div class="trip-days">${daysStr}</div>
+      <div class="card-actions">
+        <button class="btn-edit" onclick="startEdit(${JSON.stringify(t).split('"').join('&quot;')})">Edit</button>
+        <button class="btn-delete" onclick="deleteTrip('${rowId}','Swaps')">Delete</button>
+      </div>
+    </div>`;
+  });
+
+  const pickupCards = pickupsForBoard.map(p => {
+    const name = p.Name || p.name || '(no name)';
+    const initials = name !== '(no name)' ? name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : '??';
+    const rowId = p.RowID || p._row;
+    const cardCls = p.matched ? 'trip-card pickup-card matched' : 'trip-card pickup-card';
+    return { matched: !!p.matched, date: '', html: `<div class="${cardCls}">
+      <div class="avatar" style="background:var(--purple-light);color:var(--purple)">${initials}</div>
+      <div class="trip-main">
+        <div class="trip-top">
+          <span class="trip-name">${name}</span>
+          <span class="badge badge-pickup">Wants to pick up</span>
+          ${p.Flight ? `<span class="badge badge-flight">${p.Flight}</span>` : ''}
+          ${p.matched ? '<span class="badge badge-match">Match found</span>' : ''}
+        </div>
+        <div class="trip-details">
+          ${p.Duration ? `<span>${p.Duration}</span>` : ''}
+          ${p.Dates ? `<span>${p.Dates}</span>` : ''}
+        </div>
+        ${p.Notes ? `<div class="trip-wants">${p.Notes}</div>` : ''}
+        ${p.matched && p.matchNote ? `<div class="match-note">${p.matchNote}</div>` : ''}
+      </div>
+      <div class="card-actions">
+        <button class="btn-delete" onclick="deleteTrip('${rowId}','Pickups')">Delete</button>
+      </div>
+    </div>` };
+  });
+
+  // Merge trips and pickups, sort matched first
+  const allCards = [
+    ...tripCards.map((html, i) => ({ matched: trips[i].matched, date: trips[i].Date || '', html })),
+    ...pickupCards
+  ];
+  allCards.sort((a, b) => {
+    if (b.matched !== a.matched) return (b.matched ? 1 : 0) - (a.matched ? 1 : 0);
+    return 0;
+  });
+
+  document.getElementById('board-list').innerHTML = allCards.map(c => c.html).join('');
+}
+
+function renderPickups() {
+  const list = document.getElementById('pickup-list');
+  const header = document.getElementById('pickup-list-header');
+  if (!allPickups.length) { list.innerHTML = ''; header.style.display = 'none'; return; }
+  header.style.display = 'block';
+  list.innerHTML = allPickups.map(p => {
+    const initials = p.Name ? p.Name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : '??';
+    const rowId = p.RowID || p._row;
+    return `<div class="trip-card pickup-card">
+      <div class="avatar" style="background:var(--purple-light);color:var(--purple)">${initials}</div>
+      <div class="trip-main">
+        <div class="trip-top">
+          <span class="trip-name">${p.Name}</span>
+          <span class="badge badge-pickup">Wants to pick up</span>
+          ${p.Flight ? `<span class="badge badge-flight">${p.Flight}</span>` : ''}
+        </div>
+        <div class="trip-details">
+          ${p.Duration ? `<span>${p.Duration}</span>` : ''}
+          ${p.Dates ? `<span>${p.Dates}</span>` : ''}
+        </div>
+        ${p.Notes ? `<div class="trip-wants">${p.Notes}</div>` : ''}
+      </div>
+      <div class="card-actions">
+        <button class="btn-delete" onclick="deleteTrip('${rowId}','Pickups')">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function updateStats() {
+  const active = allTrips.filter(t => !t.expired);
+  document.getElementById('stat-total').textContent = active.length;
+  document.getElementById('stat-drops').textContent = active.filter(t => t.Type === 'Drop').length;
+  document.getElementById('stat-swaps').textContent = active.filter(t => t.Type === 'Swap').length;
+  document.getElementById('stat-pickups').textContent = allPickups.length;
+  document.getElementById('stat-matches').textContent = active.filter(t => t.matched).length;
+}
+
+// ── CALENDAR ──────────────────────────────────────────────────────────────
+let calSelectedDate = null;
+
+function renderCalendar() {
+  const container = document.getElementById('cal-container');
+  if (!container) return;
+
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const todayISO = today.toISOString().slice(0,10);
+
+  // Build a map of ISO date → listings
+  const dateMap = {}; // { 'YYYY-MM-DD': { trips: [], pickups: [] } }
+
+  function ensureDate(iso) {
+    if (!dateMap[iso]) dateMap[iso] = { trips: [], pickups: [] };
+  }
+
+  const active = allTrips.filter(t => !t.expired);
+  active.forEach(t => {
+    if (!t.Date) return;
+    const iso = toLocalISO(t.Date);
+    if (!iso.match(/^\d{4}-\d{2}-\d{2}/)) return;
+    ensureDate(iso);
+    dateMap[iso].trips.push(t);
+  });
+
+  allPickups.forEach(p => {
+    const dates = p.Dates ? extractPickupDates(p.Dates) : [];
+    if (dates.length) {
+      dates.forEach(iso => { ensureDate(iso); dateMap[iso].pickups.push(p); });
+    } else {
+      // Flexible pickup — show on today and next 6 weeks
+      for (let i = 0; i < 42; i++) {
+        const d = new Date(today);
+        d.setDate(d.getDate() + i);
+        const iso = d.toISOString().slice(0,10);
+        ensureDate(iso);
+        if (!dateMap[iso].pickups.includes(p)) dateMap[iso].pickups.push(p);
+      }
+    }
+  });
+
+  // Find date range: today → furthest listing date (min 6 weeks)
+  const allDates = Object.keys(dateMap).filter(d => d >= todayISO).sort();
+  const lastDate = allDates.length ? allDates[allDates.length - 1] : null;
+  const minEnd = new Date(today); minEnd.setDate(minEnd.getDate() + 41);
+  const endDate = lastDate && new Date(lastDate) > minEnd ? new Date(lastDate) : minEnd;
+
+  // Build months
+  const months = [];
+  let cur = new Date(today.getFullYear(), today.getMonth(), 1);
+  while (cur <= endDate) {
+    months.push(new Date(cur));
+    cur.setMonth(cur.getMonth() + 1);
+  }
+
+  const DOW = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+  let html = `<div class="cal-legend">
+    <div class="cal-legend-item"><div class="cal-dot cal-dot-drop"></div> Drop</div>
+    <div class="cal-legend-item"><div class="cal-dot cal-dot-swap"></div> Swap</div>
+    <div class="cal-legend-item"><div class="cal-dot cal-dot-swapdrop"></div> Swap or Drop</div>
+    <div class="cal-legend-item"><div class="cal-dot cal-dot-pickup"></div> Pickup</div>
+    <div class="cal-legend-item"><div class="cal-dot cal-dot-match"></div> Match</div>
+  </div>
+  <div id="cal-popup-anchor"></div>`;
+
+  months.forEach(monthStart => {
+    const monthName = monthStart.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+    html += `<div class="cal-month"><div class="cal-month-title">${monthName}</div><div class="cal-grid">`;
+    DOW.forEach(d => { html += `<div class="cal-dow">${d}</div>`; });
+
+    // Padding before first day (Mon=0)
+    let firstDow = monthStart.getDay() - 1;
+    if (firstDow < 0) firstDow = 6;
+    for (let i = 0; i < firstDow; i++) html += `<div class="cal-day empty"></div>`;
+
+    const daysInMonth = new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0).getDate();
+    for (let d = 1; d <= daysInMonth; d++) {
+      const date = new Date(monthStart.getFullYear(), monthStart.getMonth(), d);
+      const iso = date.toISOString().slice(0,10);
+      const isPast = date < today;
+      const isToday = iso === todayISO;
+      const data = dateMap[iso];
+      const hasListings = data && (data.trips.length || data.pickups.length);
+      const hasMatches = data && data.trips.some(t => t.matched);
+
+      let cls = 'cal-day';
+      if (isPast) cls += ' past';
+      else if (isToday) cls += ' today';
+      if (hasMatches) cls += ' has-matches';
+      else if (hasListings) cls += ' has-listings';
+      if (calSelectedDate === iso) cls += ' has-listings'; // keep highlighted
+
+      let dots = '';
+      if (data) {
+        data.trips.forEach(t => {
+          const dotCls = t.matched ? 'cal-dot-match' : (t.AlsoDrop === 'true' || t.AlsoDrop === true) ? 'cal-dot-swapdrop' : t.Type === 'Drop' ? 'cal-dot-drop' : 'cal-dot-swap';
+          dots += `<div class="cal-dot ${dotCls}"></div>`;
+        });
+        data.pickups.forEach(() => { dots += `<div class="cal-dot cal-dot-pickup"></div>`; });
+      }
+
+      const clickable = !isPast && hasListings;
+      html += `<div class="${cls}"${clickable ? ` onclick="calDayClick('${iso}')"` : ''}>
+        <div class="cal-day-num">${d}</div>
+        <div class="cal-dots">${dots}</div>
+      </div>`;
+    }
+    html += `</div></div>`;
+  });
+
+  container.innerHTML = html;
+
+  // If a date was previously selected, re-render its popup
+  if (calSelectedDate && dateMap[calSelectedDate]) {
+    renderCalPopup(calSelectedDate, dateMap[calSelectedDate]);
+  }
+}
+
+function calDayClick(iso) {
+  // Toggle
+  if (calSelectedDate === iso) {
+    calSelectedDate = null;
+    document.getElementById('cal-popup-anchor').innerHTML = '';
+    renderCalendar();
+    return;
+  }
+  calSelectedDate = iso;
+  renderCalendar();
+}
+
+function renderCalPopup(iso, data) {
+  const anchor = document.getElementById('cal-popup-anchor');
+  if (!anchor) return;
+  const label = new Date(iso + 'T12:00:00').toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long' });
+
+  let cards = '';
+  data.trips.forEach(t => {
+    const isAlsoDrop = t.AlsoDrop === 'true' || t.AlsoDrop === true;
+    const badgeCls = isAlsoDrop ? 'badge-swapdrop' : `badge-${t.Type.toLowerCase()}`;
+    const badgeLabel = isAlsoDrop ? 'Swap or Drop' : t.Type;
+    const matchNote = t.matched ? `<div class="match-note">🟢 ${t.matchNote}</div>` : '';
+    cards += `<div class="trip-card" style="margin-bottom:8px;">
+      <div class="avatar">${t.Name ? t.Name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase() : '??'}</div>
+      <div class="trip-main">
+        <div class="trip-top">
+          <span class="trip-name">${t.Name}</span>
+          <span class="badge ${badgeCls}">${badgeLabel}</span>
+          <span class="badge badge-flight">${t.Flight}</span>
+          ${t.matched ? '<span class="badge badge-match">Match</span>' : ''}
+        </div>
+        <div class="trip-details">${t.Duration ? `<span>${t.Duration}</span>` : ''}${t.Pax ? `<span>${t.Pax}</span>` : ''}</div>
+        ${t.Type === 'Swap' && t.Wants ? `<div class="trip-wants">Wants: ${t.Wants}${t.WantsDates ? ' · ' + t.WantsDates.split(',').map(d=>fmtDate(d.trim())).filter(Boolean).join(' or ') : t.WantsAfter ? ' · later' : t.WantsBefore ? ' · earlier' : ''}</div>` : ''}
+        ${t.Notes ? `<div class="trip-wants">${t.Notes}</div>` : ''}
+        ${matchNote}
+      </div>
+    </div>`;
+  });
+
+  data.pickups.forEach(p => {
+    cards += `<div class="trip-card pickup-card" style="margin-bottom:8px;">
+      <div class="avatar" style="background:var(--purple-light);color:var(--purple)">${p.Name ? p.Name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase() : '??'}</div>
+      <div class="trip-main">
+        <div class="trip-top">
+          <span class="trip-name">${p.Name}</span>
+          <span class="badge badge-pickup">Wants to pick up</span>
+          ${p.Flight ? `<span class="badge badge-flight">${p.Flight}</span>` : ''}
+        </div>
+        <div class="trip-details">${p.Duration ? `<span>${p.Duration}</span>` : ''}${p.Dates ? `<span>${p.Dates}</span>` : ''}</div>
+        ${p.Notes ? `<div class="trip-wants">${p.Notes}</div>` : ''}
+      </div>
+    </div>`;
+  });
+
+  anchor.innerHTML = `<div class="cal-popup">
+    <div class="cal-popup-title">
+      <span>${label}</span>
+      <button class="cal-popup-close" onclick="calDayClick('${iso}')">×</button>
+    </div>
+    ${cards || '<div style="font-size:13px;color:var(--text-soft);">No listings for this date.</div>'}
+  </div>`;
+
+  anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ── EDIT / DELETE ─────────────────────────────────────────────────────────
+function startEdit(trip) {
+  editingTrip = trip;
+  // Populate form
+  document.getElementById('f-name').value = trip.Name || '';
+  document.getElementById('f-flight').value = trip.Flight || '';
+  document.getElementById('f-date').value = trip.Date ? trip.Date.slice(0,10) : '';
+  document.getElementById('f-duration').value = trip.Duration || '';
+  document.getElementById('f-pax').value = trip.Pax || '';
+  document.getElementById('f-wants').value = trip.Wants || '';
+  document.getElementById('f-wants-date').value = trip.WantsDates || '';
+  document.getElementById('f-notes').value = trip.Notes || '';
+  tripType = trip.Type || 'Drop';
+  document.querySelectorAll('.toggle-btn').forEach((b,i) => b.classList.toggle('active', i === (tripType === 'Swap' ? 1 : 0)));
+  document.getElementById('wants-group').style.display = tripType === 'Swap' ? 'flex' : 'none';
+  document.getElementById('wants-date-group').style.display = tripType === 'Swap' ? 'flex' : 'none';
+  document.getElementById('also-drop-group').style.display = tripType === 'Swap' ? 'flex' : 'none';
+  document.getElementById('f-also-drop').checked = trip.AlsoDrop === 'true' || trip.AlsoDrop === true;
+  document.getElementById('form-title').textContent = 'Edit your listing';
+  document.getElementById('submit-btn').textContent = 'Save changes';
+  document.getElementById('cancel-edit-btn').style.display = 'block';
+  // Navigate to submit page
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-submit').classList.add('active');
+  document.querySelectorAll('.nav-tab')[1].classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function cancelEdit() {
+  editingTrip = null;
+  resetForm();
+}
+
+function resetForm() {
+  document.getElementById('f-name').value = '';
+  document.getElementById('f-flight').value = '';
+  document.getElementById('f-date').value = '';
+  document.getElementById('f-duration').value = '';
+  document.getElementById('f-pax').value = '';
+  document.getElementById('f-wants').value = '';
+  document.getElementById('f-wants-date').value = '';
+  document.getElementById('f-wants-after').value = '';
+  document.getElementById('f-wants-before').value = '';
+  document.getElementById('f-al-dates').value = '';
+  document.getElementById('f-notes').value = '';
+  tripType = 'Drop';
+  document.querySelectorAll('.toggle-btn').forEach((b,i) => b.classList.toggle('active', i === 0));
+  document.getElementById('f-also-drop').checked = false;
+  document.getElementById('also-drop-group').style.display = 'none';
+  document.getElementById('wants-group').style.display = 'none';
+  document.getElementById('wants-date-group').style.display = 'none';
+  document.getElementById('form-title').textContent = 'Post your trip';
+  document.getElementById('submit-btn').textContent = 'Post trip';
+  document.getElementById('cancel-edit-btn').style.display = 'none';
+  editingTrip = null;
+}
+
+async function deleteTrip(rowId, sheet) {
+  if (!confirm('Are you sure you want to delete this listing?')) return;
+  console.log('[delete] rowId:', rowId, 'sheet:', sheet);
+  try {
+    await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'delete', rowId, sheet }) });
+    showToast('Listing deleted');
+    await loadData();
+  } catch(e) { showToast('Error deleting — try again'); }
+}
+
+// ── SUBMIT ────────────────────────────────────────────────────────────────
+async function submitTrip() {
+  const name = document.getElementById('f-name').value.trim();
+  const flight = document.getElementById('f-flight').value;
+  const date = document.getElementById('f-date').value;
+  const duration = document.getElementById('f-duration').value;
+
+  if (!name || !flight || !date) { showToast('Please fill in name, flight and date'); return; }
+  if (flight === 'QF10' && !duration) { showToast('Please select 5 day or 6 day for QF10'); return; }
+  if (!SCRIPT_URL) { showToast('Setup required first — see Setup tab'); return; }
+
+  const payload = {
+    action: editingTrip ? 'update' : 'add',
+    sheet: 'Swaps',
+    rowId: editingTrip ? (editingTrip.RowID || editingTrip._row) : undefined,
+    Name: name, Type: tripType, Flight: flight, Date: date, Duration: duration,
+    Pax: document.getElementById('f-pax').value,
+    Wants: document.getElementById('f-wants').value.trim(),
+    WantsDates: document.getElementById('f-wants-date').value.trim(),
+    WantsAfter: document.getElementById('f-wants-after').value.trim(),
+    WantsBefore: document.getElementById('f-wants-before').value.trim(),
+    AlsoDrop: tripType === 'Swap' && document.getElementById('f-also-drop').checked ? 'true' : '',
+    ALDates: document.getElementById('f-al-dates').value.trim(),
+    Notes: document.getElementById('f-notes').value.trim()
+  };
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.textContent = editingTrip ? 'Saving...' : 'Posting...';
+
+  try {
+    await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+
+    // If we're working through a multi-trip queue, advance it
+    if (fbTripQueue.length > 0) {
+      fbTripQueue.shift();
+      showToast(`Trip posted! ${fbTripQueue.length > 0 ? fbTripQueue.length + ' more to go' : 'All trips posted!'}`);
+      resetForm();
+      await loadData();
+      if (fbTripQueue.length > 0) {
+        loadNextQueuedTrip();
+      } else {
+        document.getElementById('fb-queue-banner').style.display = 'none';
+        showPage('board', document.querySelectorAll('.nav-tab')[0]);
+      }
+    } else {
+      showToast(editingTrip ? 'Listing updated!' : 'Trip posted!');
+      resetForm();
+      await loadData();
+      showPage('board', document.querySelectorAll('.nav-tab')[0]);
+    }
+  } catch(e) { showToast('Error — check Setup tab'); }
+
+  btn.disabled = false;
+  btn.textContent = editingTrip ? 'Save changes' : 'Post trip';
+}
+
+async function submitPickup() {
+  const name = document.getElementById('p-name').value.trim();
+  const flight = document.getElementById('p-flight').value;
+  if (!name || !flight) { showToast('Please fill in your name and the flight you want'); return; }
+  if (!SCRIPT_URL) { showToast('Setup required first — see Setup tab'); return; }
+
+  const payload = {
+    action: 'add', sheet: 'Pickups',
+    Name: name, Flight: flight,
+    Duration: document.getElementById('p-duration').value,
+    Dates: document.getElementById('p-dates').value.trim(),
+    Notes: document.getElementById('p-notes').value.trim()
+  };
+
+  try {
+    await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+    showToast('Pickup request posted!');
+    document.getElementById('p-name').value = '';
+    document.getElementById('p-flight').value = '';
+    document.getElementById('p-duration').value = '';
+    document.getElementById('p-dates').value = '';
+    document.getElementById('p-notes').value = '';
+    await loadData();
+    renderPickups();
+  } catch(e) { showToast('Error — check Setup tab'); }
+}
+
+// ── SETUP ─────────────────────────────────────────────────────────────────
+function saveScriptUrl() {
+  const url = document.getElementById('script-url').value.trim();
+  if (!url.includes('script.google.com')) { showToast("That doesn't look like a valid script URL"); return; }
+  SCRIPT_URL = url;
+  localStorage.setItem('crewswap_url', url);
+  showToast('URL saved! Go to Swap Board to test it.');
+}
+
+function copyScript() {
+  navigator.clipboard.writeText(APPS_SCRIPT).then(() => showToast('Script copied!'));
+}
+
+function closeModal() { document.getElementById('edit-modal').classList.remove('open'); }
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+loadData();
+
+// ── ROSTER SCAN ───────────────────────────────────────────────────────────
+
+function triggerScan() {
+  document.getElementById('roster-file-input').click();
+}
+
+async function handleRosterImage(input) {
+  const file = input.files[0];
+  if (!file) return;
+  input.value = ''; // reset so same file can be re-selected
+
+  // Hide previous results
+  document.getElementById('scan-result-card').style.display = 'none';
+  document.getElementById('scan-fail-card').style.display = 'none';
+
+  // Show progress
+  const progress = document.getElementById('scan-progress');
+  const bar = document.getElementById('scan-bar');
+  const statusText = document.getElementById('scan-status-text');
+  progress.style.display = 'block';
+  bar.style.width = '5%';
+  statusText.textContent = 'Loading OCR engine...';
+
+  const scanBtn = document.getElementById('scan-btn');
+  scanBtn.disabled = true;
+  scanBtn.textContent = 'Scanning...';
+
+  try {
+    const { createWorker } = Tesseract;
+    const worker = await createWorker('eng', 1, {
+      logger: m => {
+        if (m.status === 'recognizing text') {
+          const pct = Math.round(m.progress * 80) + 15;
+          bar.style.width = pct + '%';
+          statusText.textContent = 'Reading text... ' + Math.round(m.progress * 100) + '%';
+        } else if (m.status === 'loading tesseract core') {
+          bar.style.width = '10%';
+          statusText.textContent = 'Loading engine...';
+        } else if (m.status === 'initializing api') {
+          bar.style.width = '14%';
+          statusText.textContent = 'Initialising...';
+        }
+      }
+    });
+
+    const { data: { text } } = await worker.recognize(file);
+    await worker.terminate();
+
+    bar.style.width = '100%';
+    statusText.textContent = 'Done!';
+    setTimeout(() => { progress.style.display = 'none'; bar.style.width = '0%'; }, 600);
+
+    const { trips, alDates: scannedAL } = parseRosterText(text);
+    window._scannedAL = scannedAL || [];
+
+    if (trips.length === 0) {
+      document.getElementById('scan-fail-card').style.display = 'block';
+    } else {
+      renderScanResults(trips);
+    }
+
+  } catch (err) {
+    progress.style.display = 'none';
+    bar.style.width = '0%';
+    document.getElementById('scan-fail-card').style.display = 'block';
+    console.error('OCR error:', err);
+  }
+
+  scanBtn.disabled = false;
+  scanBtn.innerHTML = `<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Scan roster`;
+}
+
+function parseRosterText(text) {
+  // ── Roster code reference ─────────────────────────────────────────────────
+  // Each roster day row shows: date + trip code (e.g. "12MAR PRL09X021")
+  // The same trip code repeats on every day that trip covers.
+  // Counting consecutive days with the same code gives us the duration.
+  //
+  // Code rules:
+  //   S______  (starts S, not SBY) → QF2 Singapore
+  //   P______  (starts P)          → QF10 Perth
+  //   SBY      (exactly)           → Standby, 3 day block
+  //   ESA                          → ignore (mid-Perth day marker)
+  //   Anything else                → ignore
+  //
+  // The roster is 3 columns on screen — OCR may read across columns rather
+  // than down, so we extract ALL date+code pairs first, sort by date, then
+  // count runs of identical codes.
+
+  const MONTHS = {
+    jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11,
+    january:0,february:1,march:2,april:3,june:5,july:6,august:7,
+    september:8,october:9,november:10,december:11
+  };
+
+  function resolveYear(month, day) {
+    const now = new Date();
+    let year = now.getFullYear();
+    const candidate = new Date(year, month, day);
+    if ((candidate - now) / 86400000 < -60) year++;
+    return year;
+  }
+
+  function toISO(day, month) {
+    const y = resolveYear(month, day);
+    return `${y}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+  }
+
+  // Pull every date mentioned on a line (may be multiple in 3-col layout)
+  function extractDatesFromLine(line) {
+    const dates = [];
+    const upper = line.toUpperCase();
+    // e.g. 12MAR, 5APR, 01JAN
+    const re1 = /\b(\d{1,2})\s*(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\b/gi;
+    let m;
+    while ((m = re1.exec(upper)) !== null) {
+      const d = parseInt(m[1]);
+      const mo = MONTHS[m[2].toLowerCase()];
+      if (d >= 1 && d <= 31) dates.push({ iso: toISO(d, mo), pos: m.index });
+    }
+    // e.g. 12/03
+    const re2 = /\b(\d{1,2})\/(\d{1,2})\b/g;
+    while ((m = re2.exec(upper)) !== null) {
+      const d = parseInt(m[1]);
+      const mo = parseInt(m[2]) - 1;
+      if (d >= 1 && d <= 31 && mo >= 0 && mo <= 11) dates.push({ iso: toISO(d, mo), pos: m.index });
+    }
+    return dates;
+  }
+
+  // Pull every relevant trip code from a line, with its character position
+  function extractCodesFromLine(line) {
+    const codes = [];
+    const upper = line.toUpperCase();
+    // Full codes like PRL09X021 or SIL04K018 — alphanum, 6+ chars, starts S or P
+    const reL = /\b([SP][A-Z0-9]{5,})\b/g;
+    let m;
+    while ((m = reL.exec(upper)) !== null) {
+      codes.push({ code: m[1], pos: m.index });
+    }
+    // Short codes: exactly 3 letters (SBY, or short S__ / P__)
+    const reS = /\b([A-Z]{3})\b/g;
+    while ((m = reS.exec(upper)) !== null) {
+      const t = m[1];
+      if (t === 'ESA') continue; // ignore
+      if (t === 'SBY' || t.startsWith('S') || t.startsWith('P')) {
+        // Don't double-count if already captured by long-code regex
+        const alreadyCaptured = codes.some(c => Math.abs(c.pos - m.index) < 3);
+        if (!alreadyCaptured) codes.push({ code: t, pos: m.index });
+      }
+    }
+    return codes;
+  }
+
+  // Classify a trip code
+  function classifyCode(code) {
+    if (code === 'SBY') return 'SBY';
+    if (code === 'ESA') return null;
+    if (code.startsWith('S')) return 'QF2';
+    if (code.startsWith('P')) return 'QF10';
+    return null;
+  }
+
+  // ── Step 1: Extract all (date, code) pairs from the OCR text ─────────────
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  const pairs = []; // { iso, code, type }
+
+  // Track ESA lines so we can bridge them into surrounding runs after pairing
+  const esaDates = []; // iso dates where only ESA appeared (no valid trip code)
+  const alDates = [];  // iso dates marked as Annual Leave
+
+  for (const line of lines) {
+    const dates = extractDatesFromLine(line);
+    const codes = extractCodesFromLine(line);
+    const upperLine = line.toUpperCase();
+
+    // Check for AL (Annual Leave) — record those dates
+    if (/\bAL\b/.test(upperLine) && (!codes.length || codes.every(c => !classifyCode(c.code)))) {
+      dates.forEach(d => alDates.push(d.iso));
+    }
+
+    // Check if this line has ESA but no valid trip codes — record the date(s)
+    const hasESA = upperLine.includes('ESA');
+    if (hasESA && (!codes.length || codes.every(c => !classifyCode(c.code)))) {
+      dates.forEach(d => esaDates.push(d.iso));
+      continue;
+    }
+
+    if (!dates.length || !codes.length) continue;
+
+    // Match each code to the nearest date on that line by character position
+    for (const c of codes) {
+      const type = classifyCode(c.code);
+      if (!type) continue;
+      // Find closest date
+      let best = dates[0];
+      let bestDist = Math.abs(dates[0].pos - c.pos);
+      for (const d of dates) {
+        const dist = Math.abs(d.pos - c.pos);
+        if (dist < bestDist) { bestDist = dist; best = d; }
+      }
+      pairs.push({ iso: best.iso, code: c.code, type });
+    }
+  }
+
+  if (!pairs.length) return [];
+
+  // ── Step 1b: Bridge ESA dates into surrounding runs ───────────────────────
+  // For each ESA date, check if it sits between two days of the same trip code.
+  // If so, inject it so the consecutive-run counter doesn't split the trip.
+  if (esaDates.length) {
+    for (const esaIso of esaDates) {
+      const esaMs = new Date(esaIso).getTime();
+      const dayMs = 86400000;
+      const prev = new Date(esaMs - dayMs).toISOString().slice(0, 10);
+      const next = new Date(esaMs + dayMs).toISOString().slice(0, 10);
+      const prevPair = pairs.find(p => p.iso === prev);
+      const nextPair = pairs.find(p => p.iso === next);
+      if (prevPair && nextPair && prevPair.code === nextPair.code) {
+        // Same code on either side — bridge the gap
+        pairs.push({ iso: esaIso, code: prevPair.code, type: prevPair.type });
+      }
+    }
+  }
+
+  // ── Step 2: Sort pairs by date ────────────────────────────────────────────
+  pairs.sort((a, b) => a.iso < b.iso ? -1 : a.iso > b.iso ? 1 : 0);
+
+  // ── Step 3: Count consecutive runs of each unique trip code ───────────────
+  // Group by code, collect all dates it appears on, sort them, count
+  // consecutive calendar days.
+  const byCode = {};
+  for (const p of pairs) {
+    if (!byCode[p.code]) byCode[p.code] = { type: p.type, dates: [] };
+    if (!byCode[p.code].dates.includes(p.iso)) byCode[p.code].dates.push(p.iso);
+  }
+
+  const trips = [];
+
+  for (const [code, info] of Object.entries(byCode)) {
+    info.dates.sort();
+    // Find consecutive runs (gaps of exactly 1 day)
+    let runStart = 0;
+    for (let i = 1; i <= info.dates.length; i++) {
+      const isConsec = i < info.dates.length &&
+        (new Date(info.dates[i]) - new Date(info.dates[i-1])) === 86400000;
+      if (!isConsec) {
+        // End of a run
+        const runDates = info.dates.slice(runStart, i);
+        const startDate = runDates[0];
+        const observedDays = runDates.length;
+        const cutOff = i === info.dates.length && observedDays > 0; // ran to end of roster
+
+        let duration = '';
+        let durationConfident = true;
+
+        if (info.type === 'SBY') {
+          duration = '3 day';
+        } else if (info.type === 'QF2') {
+          // QF2 is 4 day; if we saw fewer days it may be cut off at roster edge
+          duration = '4 day';
+          if (observedDays < 4 && cutOff) durationConfident = false;
+        } else if (info.type === 'QF10') {
+          // Count days seen → duration; if cut off, flag it
+          duration = observedDays + ' day';
+          if (cutOff) durationConfident = false;
+        }
+
+        trips.push({
+          flight: info.type === 'SBY' ? 'SBY' : info.type,
+          date: startDate,
+          duration,
+          durationConfident,
+          observedDays,
+          cutOff,
+          isSBY: info.type === 'SBY',
+          code,
+        });
+
+        runStart = i;
+      }
+    }
+  }
+
+  // Sort results by start date
+  trips.sort((a, b) => (a.date || '') < (b.date || '') ? -1 : 1);
+  return { trips, alDates };
+}
+
+function renderScanResults(trips) {
+  const card = document.getElementById('scan-result-card');
+  const list = document.getElementById('scan-trips-list');
+  card.style.display = 'block';
+  card.style.opacity = '1';
+
+  function tripLabel(t) {
+    if (t.isSBY) {
+      return `<strong>Standby (SBY)</strong> &nbsp;·&nbsp; ${t.date ? fmtDate(t.date) : 'Date unknown'} &nbsp;·&nbsp; 3 day`;
+    }
+    const dateLabel = t.date ? fmtDate(t.date) : 'Date unknown';
+    let durLabel;
+    if (!t.durationConfident) {
+      durLabel = `<span style="color:var(--amber);font-weight:600;">${t.duration} (confirm — may be cut off)</span>`;
+    } else {
+      durLabel = t.duration || '—';
+    }
+    return `<strong>${t.flight}</strong> &nbsp;·&nbsp; ${dateLabel} &nbsp;·&nbsp; ${durLabel}`;
+  }
+
+  function tripSub(t) {
+    if (t.isSBY) return `Code: ${t.code} · Can only swap with another Standby`;
+    if (!t.durationConfident) return `Code: ${t.code} · Saw ${t.observedDays} day(s) — trip may continue beyond this roster`;
+    return `Code: ${t.code} · ${t.observedDays} day(s) counted`;
+  }
+
+  list.innerHTML = trips.map((t, i) => `
+    <div class="scan-trip-option" onclick="useScanTrip(${i})">
+      <div style="flex:1">
+        <div class="scan-trip-label">${tripLabel(t)}</div>
+        <div class="scan-trip-sub">${tripSub(t)}</div>
+      </div>
+      <button class="btn-use-trip" onclick="useScanTrip(${i}); event.stopPropagation();">Use</button>
+    </div>`).join('');
+
+  window.useScanTrip = function(i) {
+    const t = trips[i];
+    // Store any AL dates found on this roster scan
+    document.getElementById('f-al-dates').value = (window._scannedAL || []).join(',');
+
+    if (t.isSBY) {
+      document.getElementById('f-flight').value = '';
+      document.getElementById('f-date').value = t.date || '';
+      document.getElementById('f-duration').value = '3 day';
+      document.getElementById('f-notes').value = (document.getElementById('f-notes').value ? document.getElementById('f-notes').value + '\n' : '') + 'Standby (SBY) — can only swap with another Standby';
+      showToast('Standby filled in — select QF2 or QF10 manually if needed');
+    } else {
+      document.getElementById('f-flight').value = t.flight;
+      document.getElementById('f-date').value = t.date || '';
+      document.getElementById('f-duration').value = t.duration || '';
+      if (!t.durationConfident) {
+        showToast('Trip filled in — please check duration, may be cut off');
+      } else {
+        showToast('Trip details filled in — check and confirm below');
+      }
+    }
+
+    document.getElementById('f-name').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    document.getElementById('f-name').focus();
+    card.style.opacity = '0.5';
+  };
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.0.4/tesseract.min.js"></script>
+</body>
+</html>
