@@ -1437,7 +1437,11 @@ function renderBoard() {
         </div>
         ${p.Notes ? `<div class="trip-wants">${p.Notes}</div>` : ''}
         ${p.matched && p.matchNote ? `<div class="match-note">${p.matchNote.split(' · Also: ').map(n => '🟢 ' + n).join('<br>')}</div>` : ''}
-        ${(() => { const cu = contactUrl(p.Contact); return cu ? `<a href="${cu}" target="_blank" rel="noopener" style="display:inline-block;margin-top:6px;padding:5px 12px;background:var(--green);color:#fff;border-radius:6px;font-size:12px;font-weight:600;text-decoration:none;">💬 Direct message</a>` : `<button onclick="showToast('No contact info for this listing')" style="display:inline-block;margin-top:6px;padding:5px 12px;background:var(--border);color:var(--grey);border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">💬 Direct message</button>`; })()}
+        ${(() => {
+          const rawContact = p.Contact || (allTrips.find(t => t.Name === p.Name) || {}).Contact || '';
+          const cu = contactUrl(rawContact);
+          return cu ? `<button onclick="openContact(${JSON.stringify(rawContact).split('"').join('&quot;')})" style="display:inline-block;margin-top:6px;padding:5px 12px;background:var(--green);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">💬 Direct message</button>` : `<button onclick="showToast('No contact info for this listing')" style="display:inline-block;margin-top:6px;padding:5px 12px;background:var(--border);color:var(--grey);border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">💬 Direct message</button>`;
+        })()}
         <div class="card-actions">
           <button class="btn-delete" onclick="deleteTrip('${rowId}','Pickups')">Delete</button>
         </div>
@@ -2468,7 +2472,8 @@ function loadNextScanTrip() {
 // ── PICKUP CONTACT ────────────────────────────────────────────────────────
 
 function pickupContactInit() {
-  const saved = localStorage.getItem(PICKUP_CONTACT_KEY);
+  // Fall back to the swap contact if no dedicated pickup contact saved yet
+  const saved = localStorage.getItem(PICKUP_CONTACT_KEY) || localStorage.getItem('crewswap_contact');
   const banner  = document.getElementById('p-saved-contact-banner');
   const wrap    = document.getElementById('p-contact-input-wrap');
   const cancelBtn = document.getElementById('p-contact-cancel-btn');
@@ -2487,6 +2492,7 @@ function pickupContactInit() {
 
 function pickupContactSave() {
   const val = document.getElementById('p-contact').value.trim();
+  localStorage.setItem('crewswap_contact', val); // keep both keys in sync
   if (!val) { showToast('Enter your contact details first'); return; }
   localStorage.setItem(PICKUP_CONTACT_KEY, val);
   document.getElementById('p-saved-contact-display').textContent = val;
