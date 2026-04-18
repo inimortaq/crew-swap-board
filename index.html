@@ -627,6 +627,7 @@ if (SCRIPT_URL) document.getElementById('script-url').value = SCRIPT_URL;
 
 let allTrips = [], allPickups = [], currentFilter = 'all', tripType = 'Drop';
 let editingTrip = null;
+let editingPickup = null;
 
 // ── SAVED CONTACT ────────────────────────────────────────────────────────
 const CONTACT_KEY = 'crewswap_contact';
@@ -774,7 +775,9 @@ function getWantsValue() {
 function getDurationValue() {
   const n = document.getElementById('f-duration').value.trim();
   if (!n) return '';
-  return n + ' day';
+  const num = parseInt(n);
+  if (isNaN(num) || num < 1) return '';
+  return num + ' day';
 }
 
 // ── WANTS DATE PICKER ─────────────────────────────────────────────────────
@@ -1443,6 +1446,7 @@ function renderBoard() {
           return cu ? `<button onclick="openContact(${JSON.stringify(rawContact).split('"').join('&quot;')})" style="display:inline-block;margin-top:6px;padding:5px 12px;background:var(--green);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">💬 Direct message</button>` : `<button onclick="showToast('No contact info for this listing')" style="display:inline-block;margin-top:6px;padding:5px 12px;background:var(--border);color:var(--grey);border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">💬 Direct message</button>`;
         })()}
         <div class="card-actions">
+          <button class="btn-edit" onclick="startEditPickup(${JSON.stringify(p).split('"').join('&quot;')})">Edit</button>
           <button class="btn-delete" onclick="deleteTrip('${rowId}','Pickups')">Delete</button>
         </div>
       </div>
@@ -1521,6 +1525,7 @@ function renderPickups() {
         </div>
         ${p.Notes ? `<div class="trip-wants">${p.Notes}</div>` : ''}
         <div class="card-actions">
+          <button class="btn-edit" onclick="startEditPickup(${JSON.stringify(p).split('"').join('&quot;')})">Edit</button>
           <button class="btn-delete" onclick="deleteTrip('${rowId}','Pickups')">Delete</button>
         </div>
       </div>
@@ -1789,7 +1794,9 @@ function startEdit(trip) {
   editingTrip = trip;
   // Populate form
   document.getElementById('f-name').value = trip.Name || '';
-  document.getElementById('f-contact').value = trip.Contact || '';
+  // Use the trip's stored contact, or fall back to locally saved contact
+  const tripContact = trip.Contact || localStorage.getItem(CONTACT_KEY) || '';
+  document.getElementById('f-contact').value = tripContact;
 
   // Flight
   const flightSel = document.getElementById('f-flight');
@@ -1910,6 +1917,7 @@ async function submitTrip() {
   const duration = getDurationValue();
 
   if (!name || !flight || !date) { showToast('Please fill in name, flight and date'); return; }
+  if (!duration) { showToast('Please enter the trip duration (number of days)'); return; }
   if (!SCRIPT_URL) { showToast('Setup required — add your Google Script URL in the Setup tab'); return; }
 
   const payload = {
@@ -1956,7 +1964,9 @@ async function submitPickup() {
   if (!SCRIPT_URL) { showToast('Setup required first — see Setup tab'); return; }
 
   const payload = {
-    action: 'add', sheet: 'Pickups',
+    action: editingPickup ? 'update' : 'add',
+    sheet: 'Pickups',
+    rowId: editingPickup ? (editingPickup.RowID || editingPickup._row) : undefined,
     Name: name, Flight: flight,
     Duration: document.getElementById('p-duration').value,
     Dates: document.getElementById('p-dates').value.trim(),
@@ -1964,8 +1974,14 @@ async function submitPickup() {
     Contact: document.getElementById('p-contact').value.trim()
   };
 
+  const btn = document.querySelector('#page-pickup .btn-submit');
+  if (btn) { btn.disabled = true; btn.textContent = editingPickup ? 'Saving...' : 'Posting...'; }
+
+  console.log('[submitPickup] payload:', JSON.stringify(payload));
   fetch(SCRIPT_URL, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) }).catch(() => {});
-  showToast('Pickup request posted!');
+  showToast(editingPickup ? 'Pickup updated!' : 'Pickup request posted!');
+
+  editingPickup = null;
   document.getElementById('p-name').value = '';
   document.getElementById('p-flight').value = '';
   document.getElementById('p-duration').value = '';
@@ -1973,7 +1989,61 @@ async function submitPickup() {
   document.getElementById('p-notes').value = '';
   pdSelectedDates = new Set();
   pdYear = null; pdMonth = null;
+  const cancelBtn = document.getElementById('p-cancel-edit-btn');
+  if (cancelBtn) cancelBtn.style.display = 'none';
+  if (btn) { btn.disabled = false; btn.textContent = 'Post pickup request'; }
   setTimeout(() => { loadData(); renderPickups(); }, 1500);
+}
+
+function startEditPickup(pickup) {
+  editingPickup = pickup;
+  document.getElementById('p-name').value = pickup.Name || '';
+  document.getElementById('p-flight').value = pickup.Flight || '';
+  document.getElementById('p-duration').value = pickup.Duration || '';
+  document.getElementById('p-notes').value = pickup.Notes || '';
+  document.getElementById('p-contact').value = pickup.Contact || localStorage.getItem(PICKUP_CONTACT_KEY) || localStorage.getItem(CONTACT_KEY) || '';
+
+  pdSelectedDates = new Set();
+  if (pickup.Dates) {
+    const parsed = extractPickupDates(pickup.Dates);
+    parsed.forEach(d => pdSelectedDates.add(d));
+  }
+  pdInit();
+  document.getElementById('p-dates').value = [...pdSelectedDates].sort().join(',');
+
+  const btn = document.querySelector('#page-pickup .btn-submit');
+  if (btn) btn.textContent = 'Save changes';
+  let cancelBtn = document.getElementById('p-cancel-edit-btn');
+  if (!cancelBtn) {
+    cancelBtn = document.createElement('button');
+    cancelBtn.id = 'p-cancel-edit-btn';
+    cancelBtn.className = 'btn-cancel';
+    cancelBtn.textContent = 'Cancel edit';
+    cancelBtn.onclick = cancelEditPickup;
+    btn.parentNode.insertBefore(cancelBtn, btn.nextSibling);
+  }
+  cancelBtn.style.display = 'block';
+
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-pickup').classList.add('active');
+  document.querySelectorAll('.nav-tab')[2].classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function cancelEditPickup() {
+  editingPickup = null;
+  document.getElementById('p-name').value = '';
+  document.getElementById('p-flight').value = '';
+  document.getElementById('p-duration').value = '';
+  document.getElementById('p-dates').value = '';
+  document.getElementById('p-notes').value = '';
+  pdSelectedDates = new Set();
+  pdYear = null; pdMonth = null;
+  const btn = document.querySelector('#page-pickup .btn-submit');
+  if (btn) btn.textContent = 'Post pickup request';
+  const cancelBtn = document.getElementById('p-cancel-edit-btn');
+  if (cancelBtn) cancelBtn.style.display = 'none';
 }
 
 // ── SETUP ─────────────────────────────────────────────────────────────────
@@ -2650,6 +2720,7 @@ function renderMyListings() {
             return '';
           })()}
           <div class="card-actions">
+            <button class="btn-edit" onclick="startEditPickup(${JSON.stringify(p).split('"').join('&quot;')})">Edit</button>
             <button class="btn-delete" onclick="deleteTrip('${rowId}','Pickups')">Delete</button>
           </div>
         </div>
