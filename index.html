@@ -1133,13 +1133,13 @@ function dateMatch(wantsDate, wantsAfter, wantsBefore, offerDate) {
 
   // wantsDate: must match one of the specific dates (if provided)
   if (wantsDate) {
-    const candidates = String(wantsDate).split(',').map(s => s.trim()).filter(Boolean);
-    const isoRe = /^\d{4}-\d{2}-\d{2}/;
-    const allISO = candidates.every(c => isoRe.test(c));
-    if (allISO && candidates.length) {
-      return candidates.some(c => sameDate(c, offerISO));
+    // Pre-process through extractPickupDates to handle all date formats
+    // (ISO timestamps, Apps Script Date.toString(), DD/MM, plain YYYY-MM-DD)
+    const parsed = extractPickupDates(String(wantsDate));
+    if (parsed.length) {
+      return parsed.some(d => sameDate(d, offerISO));
     }
-    // Free text — treat as flexible
+    // Could not parse any specific dates — treat as flexible
     return true;
   }
 
@@ -1155,10 +1155,12 @@ function extractPickupDates(datesText) {
   const MONTHS = {jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
 
   // Handle ISO timestamp format e.g. 2026-04-24T23:00:00.000Z — extract UK date
-  const reTS = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/g;
+  const reTS = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z?/g;
   let m;
   while ((m = reTS.exec(datesText)) !== null) {
-    results.push(ukISO(new Date(m[0])));
+    // Preserve Z so Date() parses as UTC not local time
+    const tsStr = m[0].endsWith('Z') ? m[0] : m[0] + 'Z';
+    results.push(ukISO(new Date(tsStr)));
   }
 
   // Handle Apps Script / JS Date.toString() format e.g. "Thu May 08 2026 00:00:00 GMT+0000 (UTC)"
@@ -1220,8 +1222,9 @@ function findMatches() {
       let noteA = '', noteB = '';
       const dA = tripDesc(a), dB = tripDesc(b);
 
-      // QF10 duration swap
-      if (a.Flight === 'QF10' && b.Flight === 'QF10' && a.Duration && b.Duration && a.Duration !== b.Duration) {
+      // QF10 duration swap — only valid if both want QF10 (different duration), not if either wants QF2
+      if (a.Flight === 'QF10' && b.Flight === 'QF10' && a.Duration && b.Duration && a.Duration !== b.Duration &&
+          a.Wants && flightMatch(a.Wants, 'QF10') && b.Wants && flightMatch(b.Wants, 'QF10')) {
         const aDateOk = dateMatch(a.WantsDates, a.WantsAfter, a.WantsBefore, b.Date);
         const bDateOk = dateMatch(b.WantsDates, b.WantsAfter, b.WantsBefore, a.Date);
         if (aDateOk && bDateOk) {
@@ -1335,7 +1338,8 @@ function renderBoard() {
     if (t.matchWith) {
       t.matchWith.split(', ').forEach(partnerName => {
         const partner = matchedTrips.find(m =>
-          m.Name === partnerName && !seen.has(m.RowID || m._row)
+          m.Name === partnerName && !seen.has(m.RowID || m._row) &&
+          m.matchWith && m.matchWith.split(', ').includes(t.Name)
         );
         if (partner) { seen.add(partner.RowID || partner._row); group.push(partner); }
       });
@@ -1402,7 +1406,7 @@ function renderBoard() {
         ${(() => {
           const cu = contactUrl(t.Contact);
           return cu
-            ? `<button onclick="openContact(${JSON.stringify(t.Contact).split('"').join('&quot;')})" style="display:inline-block;margin-top:6px;padding:5px 12px;background:var(--green);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">💬 Direct message</button>`
+            ? `<a href="${cu}" target="_blank" rel="noopener" style="display:inline-block;margin-top:6px;padding:5px 12px;background:var(--green);color:#fff;border-radius:6px;font-size:12px;font-weight:600;text-decoration:none;">💬 Direct message</a>`
             : `<button onclick="showToast('No contact info for this listing')" style="display:inline-block;margin-top:6px;padding:5px 12px;background:var(--border);color:var(--grey);border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">💬 Direct message</button>`;
         })()}
         <div class="card-actions">
@@ -1433,7 +1437,7 @@ function renderBoard() {
         </div>
         ${p.Notes ? `<div class="trip-wants">${p.Notes}</div>` : ''}
         ${p.matched && p.matchNote ? `<div class="match-note">${p.matchNote.split(' · Also: ').map(n => '🟢 ' + n).join('<br>')}</div>` : ''}
-        ${(() => { const cu = contactUrl(p.Contact); return cu ? `<button onclick="openContact(${JSON.stringify(p.Contact).split('"').join('&quot;')})" style="display:inline-block;margin-top:6px;padding:5px 12px;background:var(--green);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">💬 Direct message</button>` : `<button onclick="showToast('No contact info for this listing')" style="display:inline-block;margin-top:6px;padding:5px 12px;background:var(--border);color:var(--grey);border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">💬 Direct message</button>`; })()}
+        ${(() => { const cu = contactUrl(p.Contact); return cu ? `<a href="${cu}" target="_blank" rel="noopener" style="display:inline-block;margin-top:6px;padding:5px 12px;background:var(--green);color:#fff;border-radius:6px;font-size:12px;font-weight:600;text-decoration:none;">💬 Direct message</a>` : `<button onclick="showToast('No contact info for this listing')" style="display:inline-block;margin-top:6px;padding:5px 12px;background:var(--border);color:var(--grey);border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">💬 Direct message</button>`; })()}
         <div class="card-actions">
           <button class="btn-delete" onclick="deleteTrip('${rowId}','Pickups')">Delete</button>
         </div>
@@ -1441,42 +1445,53 @@ function renderBoard() {
     </div>` };
   });
 
-  // Build HTML: matched pairs side-by-side first, then ALL trips as solo cards (date order), then pickups
+  // Build a single flat list in date order: swaps/drops and pickups interleaved by date.
+  // Swap-vs-swap matches are rendered as side-by-side pair-rows at the earlier trip's date position.
   const seenPaired = new Set();
   let boardHTML = '';
 
-  // First pass: render all match pair-rows (using matchGroups for pairing logic)
-  matchGroups.forEach(group => {
-    for (let gi = 0; gi < group.length; gi++) {
-      const t = group[gi];
-      const tIdx = allTripsSorted.findIndex(x => (x.RowID || x._row) === (t.RowID || t._row));
-      if (tIdx === -1 || seenPaired.has(tIdx)) continue;
-      const partnerNames = (t.matchWith || '').split(', ').filter(Boolean);
-      const partnerIdxs = partnerNames.map(name =>
-        allTripsSorted.findIndex((p, pi) => !seenPaired.has(pi) && pi !== tIdx && p.Name === name)
-      ).filter(pi => pi !== -1);
-      if (partnerIdxs.length > 0) {
-        seenPaired.add(tIdx);
-        partnerIdxs.forEach(pi => seenPaired.add(pi));
-        partnerIdxs.forEach(pi => {
-          boardHTML += `<div class="pair-row">
-            ${tripCards[tIdx]}
+  // Build combined items list: each item has a sortDate and an html string
+  const boardItems = [];
+
+  // Add swap/drop trips — matched pairs become a single item at the earlier trip's date
+  allTripsSorted.forEach((t, i) => {
+    if (seenPaired.has(i)) return;
+    const partnerNames = (t.matchWith || '').split(', ').filter(Boolean);
+    const partnerIdxs = partnerNames.map(name =>
+      allTripsSorted.findIndex((p, pi) => !seenPaired.has(pi) && pi !== i && p.Name === name &&
+        p.matchWith && p.matchWith.split(', ').includes(t.Name))
+    ).filter(pi => pi !== -1);
+
+    if (partnerIdxs.length > 0) {
+      // Render as pair-row, positioned at the earlier date
+      seenPaired.add(i);
+      partnerIdxs.forEach(pi => seenPaired.add(pi));
+      partnerIdxs.forEach(pi => {
+        const sortDate = t.Date ? new Date(t.Date) : new Date('9999');
+        boardItems.push({ sortDate, html: `<div class="pair-row">
+            ${tripCards[i]}
             <div class="pair-arrow"><div class="pair-arrow-sym">&#8596;</div><div class="pair-arrow-lbl">Match</div></div>
             ${tripCards[pi]}
-          </div>`;
-        });
-      }
+          </div>` });
+      });
+    } else {
+      // Solo card
+      const sortDate = t.Date ? new Date(t.Date) : new Date('9999');
+      boardItems.push({ sortDate, html: tripCards[i] });
     }
   });
 
-  // Second pass: render ALL trips as individual cards in date order (matched stay green)
-  allTripsSorted.forEach((t, i) => {
-    boardHTML += tripCards[i];
+  // Add pickup cards, sorted by their first specific date (or far future if flexible)
+  pickupsForBoard.forEach((pk, i) => {
+    const pickupDates = pk.Dates ? extractPickupDates(pk.Dates) : [];
+    const sortDate = pickupDates.length ? new Date(pickupDates[0]) : new Date('9999');
+    boardItems.push({ sortDate, html: pickupCards[i].html });
   });
 
-  // Pickups always solo
-  pickupCards.forEach(p => { boardHTML += p.html; });
+  // Sort everything by date
+  boardItems.sort((a, b) => a.sortDate - b.sortDate);
 
+  boardHTML = boardItems.map(item => item.html).join('');
   document.getElementById('board-list').innerHTML = boardHTML;
 }
 
@@ -1533,40 +1548,16 @@ function contactUrl(raw) {
   if (/^07\d{9}$/.test(digits)) return 'https://wa.me/44' + digits.slice(1);
   if (/^\+44\d{10}$/.test(digits)) return 'https://wa.me/' + digits.replace('+','');
   if (t.includes('@') && !t.startsWith('http')) return 'mailto:' + t;
-  // Facebook profile URL or m.me link → extract slug for app-aware opening
+  // Facebook profile URL → open via Messenger (m.me/slug)
   const normalized = t.startsWith('http') ? t : 'https://' + t;
   try {
     const url = new URL(normalized);
-    if (url.hostname.includes('facebook.com') || url.hostname === 'm.me') {
+    if (url.hostname.includes('facebook.com')) {
       const slug = url.pathname.replace(/^\//, '').split('/')[0];
-      if (slug && slug !== 'messages') return 'fb-messenger:' + slug;
+      if (slug && slug !== 'messages') return 'https://m.me/' + slug;
     }
   } catch(e) {}
   return normalized;
-}
-
-// Opens a contact URL, using native Messenger app on mobile with m.me fallback
-function openContact(raw) {
-  const cu = contactUrl(raw);
-  if (!cu) return;
-  if (cu.startsWith('fb-messenger:')) {
-    const slug = cu.replace('fb-messenger:', '');
-    // Try native app URI — works on iOS & Android if Messenger is installed
-    const appUri = 'fb-messenger://user-thread/' + slug;
-    const webFallback = 'https://m.me/' + slug;
-    // Attempt to open app; if not installed the browser ignores the URI,
-    // so we set a short timer to fall back to the web URL.
-    const start = Date.now();
-    window.location.href = appUri;
-    setTimeout(function() {
-      // If app opened, the page will have gone to background and >500ms will have passed
-      if (Date.now() - start < 1500) {
-        window.open(webFallback, '_blank', 'noopener');
-      }
-    }, 600);
-  } else {
-    window.open(cu, '_blank', 'noopener');
-  }
 }
 
 function ukISO(date) {
@@ -1724,7 +1715,7 @@ function calTripCard(t) {
       </div>
       ${t.Type === 'Swap' && t.Wants ? `<div class="trip-wants">Wants: ${t.Wants}${t.WantsDates ? ' · ' + t.WantsDates.split(',').map(d=>fmtDate(d.trim())).filter(Boolean).join(' or ') : t.WantsAfter ? ' · later' : t.WantsBefore ? ' · earlier' : ''}</div>` : ''}
       ${t.Notes ? `<div class="trip-wants">${t.Notes}</div>` : ''}
-      ${t.matched && t.Contact && contactUrl(t.Contact) ? `<button onclick="openContact(${JSON.stringify(t.Contact).split('"').join('&quot;')})" style="display:inline-block;margin-top:6px;padding:5px 12px;background:var(--green);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">💬 Direct message</button>` : ''}
+      ${t.matched && t.Contact && contactUrl(t.Contact) ? `<a href="${contactUrl(t.Contact)}" target="_blank" rel="noopener" style="display:inline-block;margin-top:6px;padding:5px 12px;background:var(--green);color:#fff;border-radius:6px;font-size:12px;font-weight:600;text-decoration:none;">💬 Direct message</a>` : ''}
     </div>
   </div>`;
 }
@@ -1744,7 +1735,8 @@ function renderCalPopup(iso, data) {
       // Find ALL partners from allTrips (they may be on a different date)
       const partnerNames = t.matchWith.split(', ');
       const partners = partnerNames.map(name =>
-        allTrips.find(p => p.Name === name && (p.RowID || p._row) !== tid && !seenCal.has(p.RowID || p._row))
+        allTrips.find(p => p.Name === name && (p.RowID || p._row) !== tid && !seenCal.has(p.RowID || p._row) &&
+          p.matchWith && p.matchWith.split(', ').includes(t.Name))
       ).filter(Boolean);
 
       if (partners.length > 0) {
@@ -1772,7 +1764,7 @@ function renderCalPopup(iso, data) {
         </div>
         <div class="trip-details">${p.Duration ? `<span>${p.Duration}</span>` : ''}${p.Dates ? `<span>${p.Dates.split(',').map(d=>fmtDate(d.trim())).filter(Boolean).join(', ')}</span>` : ''}</div>
         ${p.Notes ? `<div class="trip-wants">${p.Notes}</div>` : ''}
-        ${p.matched && p.Contact && contactUrl(p.Contact) ? `<button onclick="openContact(${JSON.stringify(p.Contact).split('"').join('&quot;')})" style="display:inline-block;margin-top:6px;padding:5px 12px;background:var(--green);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">💬 Direct message</button>` : ''}
+        ${p.matched && p.Contact && contactUrl(p.Contact) ? `<a href="${contactUrl(p.Contact)}" target="_blank" rel="noopener" style="display:inline-block;margin-top:6px;padding:5px 12px;background:var(--green);color:#fff;border-radius:6px;font-size:12px;font-weight:600;text-decoration:none;">💬 Direct message</a>` : ''}
       </div>
     </div>`;
   });
@@ -2606,7 +2598,7 @@ function renderMyListings() {
               const partner = allTrips.find(x => x.Name === partnerName);
               const cu = partner && partner.Contact ? contactUrl(partner.Contact) : '';
               return cu
-                ? `<button onclick="openContact(${JSON.stringify(partner.Contact).split('"').join('&quot;')})" style="display:inline-block;margin-top:6px;padding:5px 12px;background:var(--green);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">💬 Contact your match</button>`
+                ? `<a href="${cu}" target="_blank" rel="noopener" style="display:inline-block;margin-top:6px;padding:5px 12px;background:var(--green);color:#fff;border-radius:6px;font-size:12px;font-weight:600;text-decoration:none;">💬 Contact your match</a>`
                 : `<button onclick="showToast('Your match hasn\\'t added contact info')" style="display:inline-block;margin-top:6px;padding:5px 12px;background:var(--border);color:var(--grey);border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">💬 Contact your match</button>`;
             }
             return '';
@@ -2645,7 +2637,7 @@ function renderMyListings() {
               const matchedTrip = allTrips.find(x => x.matched && x.matchWith && x.matchWith.includes(p.Name || ''));
               const cu = matchedTrip && matchedTrip.Contact ? contactUrl(matchedTrip.Contact) : '';
               return cu
-                ? `<button onclick="openContact(${JSON.stringify(matchedTrip.Contact).split('"').join('&quot;')})" style="display:inline-block;margin-top:6px;padding:5px 12px;background:var(--green);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">💬 Contact your match</button>`
+                ? `<a href="${cu}" target="_blank" rel="noopener" style="display:inline-block;margin-top:6px;padding:5px 12px;background:var(--green);color:#fff;border-radius:6px;font-size:12px;font-weight:600;text-decoration:none;">💬 Contact your match</a>`
                 : `<button onclick="showToast('Your match hasn\\'t added contact info')" style="display:inline-block;margin-top:6px;padding:5px 12px;background:var(--border);color:var(--grey);border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">💬 Contact your match</button>`;
             }
             return '';
