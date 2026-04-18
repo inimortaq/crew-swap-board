@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -31,6 +32,8 @@
   label{font-size:12px;font-weight:500;color:var(--grey);text-transform:uppercase;letter-spacing:.05em;}
   input,select,textarea{font-family:var(--sans);font-size:14px;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--white);color:var(--text);outline:none;transition:border-color .15s;width:100%;}
   input:focus,select:focus,textarea:focus{border-color:var(--sky);}
+  input[type="date"]::-webkit-calendar-picker-indicator{display:none;}
+  input[type="date"]::-webkit-inner-spin-button{display:none;}
   textarea{resize:vertical;min-height:80px;}
   .hint{font-size:11px;color:var(--text-soft);margin-top:2px;}
   .toggle-group{display:flex;gap:8px;flex-wrap:wrap;}
@@ -45,7 +48,13 @@
   .board-filters{display:flex;gap:8px;flex-wrap:wrap;}
   .filter-pill{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--white);color:var(--grey);transition:all .15s;}
   .filter-pill.active{background:var(--navy);color:var(--white);border-color:var(--navy);}
-  .trip-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:8px;display:flex;align-items:flex-start;gap:12px;transition:box-shadow .15s;position:relative;}
+  .trip-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:8px;display:flex;align-items:flex-start;gap:12px;transition:box-shadow .15s;}
+  .pair-row{display:flex;align-items:stretch;gap:0;margin-bottom:8px;}
+  .pair-row .trip-card{flex:1;margin-bottom:0;min-width:0;}
+  .pair-arrow{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 8px;flex-shrink:0;gap:2px;}
+  .pair-arrow-sym{font-size:20px;color:var(--green);line-height:1;}
+  .pair-arrow-lbl{font-size:9px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.05em;}
+  @media(max-width:600px){.pair-row{flex-direction:column;}.pair-arrow{flex-direction:row;padding:4px 0;}.pair-arrow-sym{font-size:16px;transform:rotate(90deg);}}
   .trip-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.07);}
   .trip-card.matched{border-color:var(--green);background:var(--green-light);}
   .trip-card.expiring{border-color:var(--amber);}
@@ -66,9 +75,8 @@
   .trip-details{font-size:13px;color:var(--text-mid);line-height:1.5;}
   .trip-details span{margin-right:10px;}
   .trip-wants{font-size:12px;color:var(--grey);margin-top:3px;}
-  .trip-days{font-size:11px;font-family:var(--mono);color:var(--text-soft);position:absolute;top:10px;right:80px;}
   .match-note{font-size:11px;color:#065F46;font-weight:500;margin-top:4px;}
-  .card-actions{position:absolute;top:10px;right:12px;display:flex;gap:6px;}
+  .card-actions{display:flex;gap:6px;margin-top:8px;justify-content:flex-end;}
   .btn-edit,.btn-delete{padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;border:none;font-family:var(--sans);}
   .btn-edit{background:var(--sky-light);color:var(--sky);}
   .btn-edit:hover{background:#DBEAFE;}
@@ -87,10 +95,6 @@
   .step-body strong{color:var(--text);}
   .code-block{background:var(--navy);color:#93C5FD;font-family:var(--mono);font-size:12px;padding:12px 14px;border-radius:var(--radius-sm);margin:8px 0;overflow-x:auto;white-space:pre;line-height:1.6;}
   .copy-btn{display:inline-block;padding:4px 10px;background:var(--sky-light);color:var(--sky);border:none;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--sans);margin-top:4px;}
-  .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center;}
-  .modal-bg.open{display:flex;}
-  .modal{background:var(--white);border-radius:var(--radius);padding:1.5rem;width:90%;max-width:480px;max-height:90vh;overflow-y:auto;}
-  .modal-title{font-size:16px;font-weight:600;margin-bottom:1rem;}
   /* ── ROSTER SCAN ── */
   .scan-banner{background:var(--navy);border-radius:var(--radius);padding:14px 16px;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
   .scan-banner-text{color:#fff;font-size:13px;font-weight:500;line-height:1.4;}
@@ -141,7 +145,9 @@
   .cal-popup-close{background:none;border:none;font-size:18px;cursor:pointer;color:var(--grey);line-height:1;}
   .cal-legend{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:1rem;font-size:11px;color:var(--grey);}
   .cal-legend-item{display:flex;align-items:center;gap:4px;}
-  @media(max-width:600px){.cal-day{min-height:38px;}.cal-dot{width:5px;height:5px;}}
+  @media(max-width:600px){
+    .cal-day{min-height:38px;}
+    .cal-dot{width:5px;height:5px;}
     .form-grid{grid-template-columns:1fr;}
     .stats-row{grid-template-columns:1fr 1fr 1fr;}
     nav{padding:0 .75rem;}
@@ -158,6 +164,7 @@
     <button class="nav-tab active" onclick="showPage('board',this)">Swap Board</button>
     <button class="nav-tab" onclick="showPage('submit',this)">Post a Trip</button>
     <button class="nav-tab" onclick="showPage('pickup',this)">Pick Up a Trip</button>
+    <button class="nav-tab" onclick="showPage('mine',this)">My Listings</button>
     <button class="nav-tab" onclick="showPage('calendar',this)">Calendar</button>
     <button class="nav-tab" onclick="showPage('setup',this)">Setup</button>
   </div>
@@ -165,7 +172,7 @@
 
 <!-- SWAP BOARD -->
 <div id="page-board" class="page active">
-  <div class="stats-row">
+  <div class="stats-row" style="display:none;">
     <div class="stat"><div class="stat-n" id="stat-total">0</div><div class="stat-l">Listings</div></div>
     <div class="stat"><div class="stat-n" id="stat-drops">0</div><div class="stat-l">Drops</div></div>
     <div class="stat"><div class="stat-n" id="stat-swaps">0</div><div class="stat-l">Swaps</div></div>
@@ -179,6 +186,9 @@
       <button class="filter-pill" onclick="setFilter('swap',this)">Swaps only</button>
       <button class="filter-pill" onclick="setFilter('pickup',this)">Pickups only</button>
       <button class="filter-pill" onclick="setFilter('matched',this)">Matched</button>
+      <button class="filter-pill" onclick="setFilter('sby',this)">SBY</button>
+      <button class="filter-pill" onclick="setFilter('eps',this)">EPs</button>
+      <button class="filter-pill" onclick="setFilter('training',this)">Training</button>
     </div>
     <button class="filter-pill" onclick="loadData()" style="border-color:var(--sky);color:var(--sky);">Refresh</button>
   </div>
@@ -188,48 +198,13 @@
 <!-- POST A TRIP -->
 <div id="page-submit" class="page">
 
-  <!-- Facebook post parser -->
-  <div class="scan-banner" style="background:#1877F2;margin-bottom:8px;">
-    <div>
-      <div class="scan-banner-text">📋 Read a Facebook post</div>
-      <div class="scan-banner-sub">Paste text or upload a screenshot — we'll fill in your details.</div>
+  <!-- First-visit contact prompt (hidden once contact saved) -->
+  <div id="contact-welcome" style="display:none;background:#FFFBEB;border:1px solid #FDE68A;border-radius:var(--radius);padding:13px 16px;margin-bottom:1rem;flex-wrap:wrap;align-items:center;gap:12px;">
+    <div style="flex:1;">
+      <div style="font-size:13px;font-weight:600;color:#92400E;">👋 Save your contact once</div>
+      <div style="font-size:12px;color:#78350F;margin-top:2px;">Add your Facebook, WhatsApp or email below — it'll auto-fill every time you post a trip so matched crew can reach you directly.</div>
     </div>
-    <div style="display:flex;gap:8px;">
-      <button class="btn-scan" id="fb-parse-btn" onclick="showFBPaste()">Paste text</button>
-      <button class="btn-scan" id="fb-image-btn" onclick="document.getElementById('fb-image-input').click()" style="background:rgba(255,255,255,.2);">📷 Screenshot</button>
-    </div>
-  </div>
-  <input type="file" id="fb-image-input" accept="image/*" style="display:none;" onchange="parseFBImage(this)">
-
-  <!-- FB paste area -->
-  <div id="fb-paste-area" style="display:none;background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem;">
-    <label style="font-size:12px;font-weight:500;color:var(--grey);text-transform:uppercase;letter-spacing:.05em;">Paste your Facebook post here</label>
-    <textarea id="fb-post-text" style="width:100%;margin-top:8px;min-height:100px;font-family:var(--sans);font-size:14px;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);resize:vertical;" placeholder="e.g. Hey guys, anyone want my Singapore trip 3rd April? Happy to swap for a Perth around the same time, don't mind 5 or 6 day..."></textarea>
-    <div style="display:flex;gap:8px;margin-top:8px;">
-      <button class="btn-scan" id="fb-read-btn" onclick="parseFBPost()" style="background:var(--sky);">Read post</button>
-      <button class="btn-cancel" onclick="hideFBPaste()" style="margin-top:0;width:auto;padding:9px 16px;">Cancel</button>
-    </div>
-    <div id="fb-parse-status" style="font-size:12px;color:var(--grey);margin-top:8px;display:none;"></div>
-  </div>
-
-  <!-- FB image reading progress -->
-  <div class="scan-progress" id="fb-image-progress" style="display:none;">
-    <div class="scan-progress-label">Reading your screenshot...</div>
-    <div class="scan-bar-track"><div class="scan-bar-fill" id="fb-image-bar" style="width:60%;"></div></div>
-    <div class="scan-status">Asking Claude to read the post...</div>
-  </div>
-
-  <!-- FB parse failure -->
-  <div class="scan-fail-card" id="fb-fail-card">
-    <div class="scan-fail-title">Couldn't read this post</div>
-    <div class="scan-fail-body" id="fb-fail-body">Make sure your Anthropic API key is saved in Setup, or just fill in the form manually below.</div>
-  </div>
-
-  <!-- Multi-trip queue banner -->
-  <div id="fb-queue-banner" style="display:none;background:var(--amber-light);border:1px solid var(--amber);border-radius:var(--radius);padding:12px 16px;margin-bottom:1rem;">
-    <div style="font-size:13px;font-weight:600;color:#92400E;" id="fb-queue-label"></div>
-    <div style="font-size:11px;color:#92400E;margin-top:2px;">Check the details below are correct, then hit Post trip to continue.</div>
-    <button onclick="skipQueuedTrip()" style="margin-top:8px;padding:4px 12px;font-size:11px;font-weight:600;background:transparent;border:1px solid #92400E;border-radius:6px;color:#92400E;cursor:pointer;">Skip this trip</button>
+    <button class="btn-scan" style="background:#F59E0B;" onclick="document.getElementById('contact-welcome').style.display='none';document.getElementById('contact-input-wrap').style.display='block';document.getElementById('f-contact').focus();">Add contact ›</button>
   </div>
 
   <!-- Roster scan banner -->
@@ -276,6 +251,27 @@
         <input type="text" id="f-name" placeholder="e.g. Sarah Jones">
       </div>
       <div class="form-group full">
+        <label>Contact <span style="font-weight:400;font-size:11px;color:var(--text-soft)">(optional — only shown to crew when there's a match)</span></label>
+
+        <!-- Saved-contact banner (shown when a contact is saved and not editing) -->
+        <div id="saved-contact-banner" style="display:none;align-items:center;gap:8px;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:var(--radius-sm);padding:9px 12px;">
+          <span style="font-size:13px;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" id="saved-contact-display"></span>
+          <button class="btn-edit" onclick="contactStartEdit()" style="flex-shrink:0;">Edit</button>
+          <button class="btn-delete" onclick="contactDelete()" style="flex-shrink:0;">Delete</button>
+        </div>
+
+        <!-- First-time / edit mode input -->
+        <div id="contact-input-wrap" style="display:none;">
+          <input type="text" id="f-contact" placeholder="e.g. https://facebook.com/yourname · 07700123456 · email@address.com">
+          <div style="display:flex;gap:8px;margin-top:6px;">
+            <button type="button" class="btn-edit" onclick="contactSave()" style="padding:6px 14px;font-size:12px;">Save for next time</button>
+            <button type="button" class="btn-cancel" onclick="contactCancelEdit()" id="contact-cancel-btn" style="width:auto;padding:6px 14px;font-size:12px;margin-top:0;">Cancel</button>
+          </div>
+        </div>
+
+        <span class="hint">Saved once — auto-fills every time you post. Facebook URL opens Messenger · Phone opens WhatsApp · Email opens mail app</span>
+      </div>
+      <div class="form-group full">
         <label>Drop or Swap?</label>
         <div class="toggle-group">
           <div class="toggle-btn active" onclick="setType('Drop',this)">Drop — just want rid of it</div>
@@ -284,25 +280,28 @@
       </div>
       <div class="form-group">
         <label>Flight code</label>
-        <select id="f-flight">
+        <select id="f-flight" onchange="handleFlightChange(this.value)">
           <option value="">Select flight...</option>
           <option value="QF2">QF2</option>
           <option value="QF10">QF10</option>
+          <option value="SBY">SBY (Standby)</option>
+          <option value="EPs">EPs (Emergency Procedures)</option>
+          <option value="Training">Training</option>
+          <option value="Other">Other (enter manually)</option>
         </select>
+        <input type="text" id="f-flight-other" placeholder="Enter flight code..." style="display:none;margin-top:6px;">
       </div>
       <div class="form-group">
         <label>Date of trip</label>
-        <input type="date" id="f-date">
+        <div style="position:relative;display:flex;align-items:center;">
+          <span onclick="document.getElementById('f-date').showPicker?document.getElementById('f-date').showPicker():document.getElementById('f-date').click()" style="position:absolute;left:10px;cursor:pointer;font-size:16px;z-index:1;line-height:1;">📅</span>
+          <input type="date" id="f-date" style="padding-left:34px;width:100%;">
+        </div>
       </div>
       <div class="form-group">
-        <label>Trip duration <span style="color:var(--red)">*</span></label>
-        <select id="f-duration">
-          <option value="">Select...</option>
-          <option value="4 day">4 day (QF2)</option>
-          <option value="5 day">5 day (QF10)</option>
-          <option value="6 day">6 day (QF10)</option>
-        </select>
-        <span class="hint">QF10 crew must select 5 day or 6 day</span>
+        <label>Trip duration (days) <span style="color:var(--red)">*</span></label>
+        <input type="number" id="f-duration" min="1" max="30" placeholder="e.g. 4" style="width:100%;">
+        <span class="hint">Enter number of days e.g. 4 for QF2, 5 or 6 for QF10</span>
       </div>
       <div class="form-group">
         <label>Pax trip?</label>
@@ -314,16 +313,40 @@
       </div>
       <div class="form-group full" id="wants-group" style="display:none;">
         <label>Flight you want in return</label>
-        <select id="f-wants">
+        <select id="f-wants" onchange="handleWantsChange(this.value)">
           <option value="">Select...</option>
           <option value="QF2">QF2</option>
           <option value="QF10">QF10</option>
           <option value="QF2 or QF10">Either QF2 or QF10</option>
+          <option value="SBY">SBY (Standby)</option>
+          <option value="EPs">EPs (Emergency Procedures)</option>
+          <option value="Training">Training</option>
+          <option value="Other">Other (enter manually)</option>
         </select>
+        <input type="text" id="f-wants-other" placeholder="Enter flight code..." style="display:none;margin-top:6px;">
       </div>
       <div class="form-group full" id="wants-date-group" style="display:none;">
-        <label>Preferred date for wanted trip <span style="font-weight:400;font-size:11px;color:var(--text-soft)">(leave blank if flexible on date)</span></label>
-        <input type="text" id="f-wants-date" placeholder="e.g. 2026-04-06 or leave blank if flexible">
+        <label>Preferred date(s) for wanted trip <span style="font-weight:400;font-size:11px;color:var(--text-soft)">(leave blank if flexible)</span></label>
+        <div id="wants-date-picker" style="background:#F9FAFB;border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <button type="button" onclick="wdPickerPrev()" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--grey);padding:0 6px;">&#8249;</button>
+            <span id="wd-month-label" style="font-size:13px;font-weight:600;color:var(--text);font-family:var(--mono);"></span>
+            <button type="button" onclick="wdPickerNext()" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--grey);padding:0 6px;">&#8250;</button>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:6px;">
+            <div style="font-size:10px;font-weight:600;color:var(--text-soft);text-align:center;padding:2px;">M</div>
+            <div style="font-size:10px;font-weight:600;color:var(--text-soft);text-align:center;padding:2px;">T</div>
+            <div style="font-size:10px;font-weight:600;color:var(--text-soft);text-align:center;padding:2px;">W</div>
+            <div style="font-size:10px;font-weight:600;color:var(--text-soft);text-align:center;padding:2px;">T</div>
+            <div style="font-size:10px;font-weight:600;color:var(--text-soft);text-align:center;padding:2px;">F</div>
+            <div style="font-size:10px;font-weight:600;color:var(--text-soft);text-align:center;padding:2px;">S</div>
+            <div style="font-size:10px;font-weight:600;color:var(--text-soft);text-align:center;padding:2px;">S</div>
+          </div>
+          <div id="wd-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;"></div>
+          <div style="margin-top:10px;font-size:11px;color:var(--grey);">Tap to select/deselect dates. You can pick more than one.</div>
+          <div id="wd-selected-display" style="margin-top:8px;font-size:12px;color:var(--sky);font-weight:500;min-height:16px;"></div>
+        </div>
+        <input type="hidden" id="f-wants-date">
       </div>
       <div class="form-group full" id="also-drop-group" style="display:none;">
         <label style="display:flex;align-items:center;gap:10px;cursor:pointer;text-transform:none;font-size:14px;font-weight:400;color:var(--text-mid);">
@@ -346,43 +369,6 @@
 
 <!-- PICK UP A TRIP -->
 <div id="page-pickup" class="page">
-
-  <!-- Facebook post parser for pickup -->
-  <div class="scan-banner" style="background:#1877F2;margin-bottom:8px;">
-    <div>
-      <div class="scan-banner-text">📋 Read a Facebook post</div>
-      <div class="scan-banner-sub">Paste text or upload a screenshot — we'll fill in what you're looking for.</div>
-    </div>
-    <div style="display:flex;gap:8px;">
-      <button class="btn-scan" onclick="showPickupPaste()">Paste text</button>
-      <button class="btn-scan" id="pickup-image-btn" onclick="document.getElementById('pickup-image-input').click()" style="background:rgba(255,255,255,.2);">📷 Screenshot</button>
-    </div>
-  </div>
-  <input type="file" id="pickup-image-input" accept="image/*" style="display:none;" onchange="parsePickupImage(this)">
-
-  <!-- Pickup paste area -->
-  <div id="pickup-paste-area" style="display:none;background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem;">
-    <label style="font-size:12px;font-weight:500;color:var(--grey);text-transform:uppercase;letter-spacing:.05em;">Paste your Facebook post here</label>
-    <textarea id="pickup-post-text" style="width:100%;margin-top:8px;min-height:80px;font-family:var(--sans);font-size:14px;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);resize:vertical;" placeholder="e.g. Looking to pick up a Singapore trip, any date in May..."></textarea>
-    <div style="display:flex;gap:8px;margin-top:8px;">
-      <button class="btn-scan" id="pickup-read-btn" onclick="parsePickupPost()" style="background:var(--sky);">Read post</button>
-      <button class="btn-cancel" onclick="hidePickupPaste()" style="margin-top:0;width:auto;padding:9px 16px;">Cancel</button>
-    </div>
-    <div id="pickup-parse-status" style="font-size:12px;color:var(--grey);margin-top:8px;display:none;"></div>
-  </div>
-
-  <!-- Pickup image progress -->
-  <div class="scan-progress" id="pickup-image-progress" style="display:none;">
-    <div class="scan-progress-label">Reading your screenshot...</div>
-    <div class="scan-bar-track"><div class="scan-bar-fill" style="width:60%;"></div></div>
-    <div class="scan-status">Asking Claude to read the post...</div>
-  </div>
-
-  <!-- Pickup parse failure -->
-  <div class="scan-fail-card" id="pickup-fail-card" style="display:none;">
-    <div class="scan-fail-title">Couldn't read this post</div>
-    <div class="scan-fail-body" id="pickup-fail-body">Make sure your Anthropic API key is saved in Setup, or just fill in the form manually below.</div>
-  </div>
 
   <div class="card">
     <div class="card-title">Looking to pick up a trip</div>
@@ -410,12 +396,45 @@
         </select>
       </div>
       <div class="form-group full">
-        <label>Preferred dates</label>
-        <input type="text" id="p-dates" placeholder="e.g. any date in May, 1st–15th June, flexible">
+        <label>Preferred dates <span style="font-weight:400;font-size:11px;color:var(--text-soft)">(leave blank if flexible on dates)</span></label>
+        <div id="pickup-date-picker" style="background:#F9FAFB;border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <button type="button" onclick="pdPickerPrev()" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--grey);padding:0 6px;">&#8249;</button>
+            <span id="pd-month-label" style="font-size:13px;font-weight:600;color:var(--text);font-family:var(--mono);"></span>
+            <button type="button" onclick="pdPickerNext()" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--grey);padding:0 6px;">&#8250;</button>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:6px;">
+            <div style="font-size:10px;font-weight:600;color:var(--text-soft);text-align:center;padding:2px;">M</div>
+            <div style="font-size:10px;font-weight:600;color:var(--text-soft);text-align:center;padding:2px;">T</div>
+            <div style="font-size:10px;font-weight:600;color:var(--text-soft);text-align:center;padding:2px;">W</div>
+            <div style="font-size:10px;font-weight:600;color:var(--text-soft);text-align:center;padding:2px;">T</div>
+            <div style="font-size:10px;font-weight:600;color:var(--text-soft);text-align:center;padding:2px;">F</div>
+            <div style="font-size:10px;font-weight:600;color:var(--text-soft);text-align:center;padding:2px;">S</div>
+            <div style="font-size:10px;font-weight:600;color:var(--text-soft);text-align:center;padding:2px;">S</div>
+          </div>
+          <div id="pd-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;"></div>
+          <div style="margin-top:10px;font-size:11px;color:var(--grey);">Tap to select/deselect dates. You can pick more than one.</div>
+          <div id="pd-selected-display" style="margin-top:8px;font-size:12px;color:var(--sky);font-weight:500;min-height:16px;"></div>
+        </div>
+        <input type="hidden" id="p-dates">
       </div>
       <div class="form-group full">
         <label>Notes (optional)</label>
         <textarea id="p-notes" placeholder="Anything else useful to know..."></textarea>
+      </div>
+      <div class="form-group full">
+        <label>Contact <span style="font-weight:400;font-size:11px;color:var(--text-soft)">(optional — shown to crew when there's a match)</span></label>
+        <div id="p-saved-contact-banner" style="display:none;align-items:center;gap:8px;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:var(--radius-sm);padding:9px 12px;">
+          <span style="font-size:13px;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" id="p-saved-contact-display"></span>
+          <button class="btn-edit" onclick="pickupContactStartEdit()" style="flex-shrink:0;">Edit</button>
+        </div>
+        <div id="p-contact-input-wrap" style="display:none;">
+          <input type="text" id="p-contact" placeholder="e.g. https://facebook.com/yourname · 07700123456 · email@address.com">
+          <div style="display:flex;gap:8px;margin-top:6px;">
+            <button type="button" class="btn-edit" onclick="pickupContactSave()" style="padding:6px 14px;font-size:12px;">Save for next time</button>
+            <button type="button" class="btn-cancel" onclick="pickupContactCancelEdit()" id="p-contact-cancel-btn" style="width:auto;padding:6px 14px;font-size:12px;margin-top:0;display:none;">Cancel</button>
+          </div>
+        </div>
       </div>
     </div>
     <button class="btn-submit" onclick="submitPickup()">Post pickup request</button>
@@ -424,6 +443,26 @@
     <h3 style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:8px;">Current pickup requests</h3>
   </div>
   <div id="pickup-list"></div>
+</div>
+
+
+<!-- MY LISTINGS -->
+<div id="page-mine" class="page">
+  <div id="mine-name-prompt" style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:var(--radius);padding:13px 16px;margin-bottom:1rem;">
+    <div style="font-size:13px;font-weight:600;color:#92400E;margin-bottom:6px;">👤 Your name</div>
+    <div style="font-size:12px;color:#78350F;margin-bottom:10px;">Enter your name to see your listings. We'll remember it.</div>
+    <div style="display:flex;gap:8px;">
+      <input type="text" id="mine-name-input" placeholder="e.g. Sarah Jones" style="flex:1;" onkeydown="if(event.key==='Enter')mineNameSave()">
+      <button class="btn-scan" style="background:var(--navy);" onclick="mineNameSave()">Go</button>
+    </div>
+  </div>
+  <div id="mine-header" style="display:none;margin-bottom:1rem;">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+      <div style="font-size:14px;font-weight:600;color:var(--text);">Listings for <span id="mine-name-display"></span></div>
+      <button class="filter-pill" onclick="mineChangeName()" style="border-color:var(--sky);color:var(--sky);">Change name</button>
+    </div>
+  </div>
+  <div id="mine-list"><div class="empty">Enter your name above to see your listings.</div></div>
 </div>
 
 <!-- CALENDAR -->
@@ -442,8 +481,8 @@
     <div class="step">
       <div class="step-num">2</div>
       <div class="step-body"><strong>Add two sheets inside it.</strong> Rename the first tab to <strong>Swaps</strong> and create a second tab called <strong>Pickups</strong>.<br><br>
-      In <strong>Swaps</strong> row 1, add these headers: <div class="code-block">Timestamp  Name  Type  Flight  Date  Duration  Pax  Wants  WantsDates  WantsAfter  WantsBefore  AlsoDrop  ALDates  Notes  RowID</div>
-      In <strong>Pickups</strong> row 1, add these headers: <div class="code-block">Timestamp  Name  Flight  Duration  Dates  Notes  RowID</div></div>
+      In <strong>Swaps</strong> row 1, add these headers: <div class="code-block">Timestamp  Name  Type  Flight  Date  Duration  Pax  Wants  WantsDates  WantsAfter  WantsBefore  AlsoDrop  ALDates  Notes  Contact  RowID</div>
+      In <strong>Pickups</strong> row 1, add these headers: <div class="code-block">Timestamp  Name  Flight  Duration  Dates  Notes  Contact  RowID</div></div>
     </div>
     <div class="step">
       <div class="step-num">3</div>
@@ -467,27 +506,26 @@
     </div>
     <div class="step">
       <div class="step-num">6</div>
-      <div class="step-body"><strong>Optional: Add an Anthropic API key</strong> to enable the "Paste a Facebook post" feature. Get a free key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> — paste it here and click Save. It's stored only on this device.
-        <div style="display:flex;gap:8px;margin-top:8px;">
-          <input type="password" id="anthropic-key" placeholder="sk-ant-...">
-          <button class="copy-btn" onclick="saveAnthropicKey()" style="padding:8px 14px;font-size:13px;">Save</button>
-        </div>
-      </div>
-    </div>
-    <div class="step">
-      <div class="step-num">7</div>
-      <div class="step-body"><strong>Host this file for free.</strong> Go to <a href="https://pages.github.com" target="_blank">pages.github.com</a>, create a free account, upload this HTML file and you'll get a permanent link to share with your crew.</div>
+      <div class="step-body"><strong>You're done!</strong> Go to the Swap Board tab and click Refresh to confirm it's connected. Share the URL of this page with your crew.</div>
     </div>
   </div>
-</div>
 
-<!-- EDIT MODAL -->
-<div class="modal-bg" id="edit-modal">
-  <div class="modal">
-    <div class="modal-title">Edit listing</div>
-    <p style="font-size:13px;color:var(--grey);margin-bottom:1rem;">Update your details below and save.</p>
-    <button class="btn-submit" onclick="goToEditForm()" style="margin-top:0;">Go to edit form</button>
-    <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+  <div class="card">
+    <div class="card-title">📲 Share with your crew</div>
+    <p style="font-size:13px;color:var(--grey);margin-bottom:1rem;">Generate a QR code crew can scan to open the board. The QR links to this page with no personal details attached — everyone starts fresh with their own contact saved locally.</p>
+    <button class="btn-submit" onclick="generateSetupQR()" style="margin-top:0;margin-bottom:1rem;">Generate QR code</button>
+    <div id="qr-container" style="margin-bottom:10px;"></div>
+    <div id="qr-url-display" style="font-size:11px;color:var(--grey);word-break:break-all;margin-bottom:8px;font-family:var(--mono);"></div>
+    <button id="qr-copy-btn" class="copy-btn" style="display:none;">Copy URL</button>
+    <script>
+      // Show copy button once QR is generated
+      document.querySelector('[onclick="generateSetupQR()"]').addEventListener('click', function() {
+        setTimeout(() => {
+          const btn = document.getElementById('qr-copy-btn');
+          if (document.getElementById('qr-url-display').textContent) btn.style.display = 'inline-block';
+        }, 300);
+      });
+    </script>
   </div>
 </div>
 
@@ -513,10 +551,20 @@ function handleRequest(e) {
       var swapHeaders = swapData[0];
       var pickHeaders = pickData[0];
       var swaps = swapData.slice(1).map(function(r,i){
-        var o={}; swapHeaders.forEach(function(h,j){o[h]=r[j];}); o._row=i+2; return o;
+        var o={}; swapHeaders.forEach(function(h,j){
+          o[h] = (r[j] instanceof Date) ? r[j].toISOString() : r[j];
+        }); o._row=i+2;
+        // Repair old rows where RowID landed in Contact column
+        if (!o.RowID && /^\\d{10,}$/.test(String(o.Contact||'').trim())) { o.RowID=o.Contact; o.Contact=''; }
+        return o;
       }).filter(function(r){return r.Name;});
       var picks = pickData.slice(1).map(function(r,i){
-        var o={}; pickHeaders.forEach(function(h,j){o[h]=r[j];}); o._row=i+2; return o;
+        var o={}; pickHeaders.forEach(function(h,j){
+          o[h] = (r[j] instanceof Date) ? r[j].toISOString() : r[j];
+        }); o._row=i+2;
+        // Repair old rows where RowID landed in Contact column
+        if (!o.RowID && /^\\d{10,}$/.test(String(o.Contact||'').trim())) { o.RowID=o.Contact; o.Contact=''; }
+        return o;
       }).filter(function(r){return r.Name || r.name;});
       out.setContent(JSON.stringify({status:'ok',swaps:swaps,pickups:picks}));
 
@@ -524,9 +572,12 @@ function handleRequest(e) {
       var sheet = ss.getSheetByName(body.sheet || 'Swaps');
       var rowId = new Date().getTime().toString();
       if (body.sheet === 'Pickups') {
-        sheet.appendRow([new Date().toISOString(), body.Name, body.Flight, body.Duration, body.Dates, body.Notes, rowId]);
+        var datesVal = body.Dates ? String(body.Dates) : '';
+        sheet.appendRow([new Date().toISOString(), body.Name, body.Flight, body.Duration, datesVal, body.Notes, body.Contact||'', rowId]);
       } else {
-        sheet.appendRow([new Date().toISOString(), body.Name, body.Type, body.Flight, body.Date, body.Duration, body.Pax, body.Wants, body.WantsDates, body.WantsAfter||'', body.WantsBefore||'', body.AlsoDrop||'', body.ALDates||'', body.Notes, rowId]);
+        var dateVal = body.Date ? String(body.Date) : '';
+        var wdVal = body.WantsDates ? String(body.WantsDates) : '';
+        sheet.appendRow([new Date().toISOString(), body.Name, body.Type, body.Flight, dateVal, body.Duration, body.Pax, body.Wants, wdVal, body.WantsAfter||'', body.WantsBefore||'', body.AlsoDrop||'', body.ALDates||'', body.Notes, body.Contact||'', rowId]);
       }
       out.setContent(JSON.stringify({status:'ok',rowId:rowId}));
 
@@ -538,9 +589,9 @@ function handleRequest(e) {
       for (var i=1;i<data.length;i++) {
         if (data[i][ridCol] == body.rowId) {
           if (body.sheet === 'Pickups') {
-            sheet.getRange(i+1,1,1,7).setValues([[data[i][0], body.Name, body.Flight, body.Duration, body.Dates, body.Notes, body.rowId]]);
+            sheet.getRange(i+1,1,1,8).setValues([[data[i][0], body.Name, body.Flight, body.Duration, String(body.Dates||''), body.Notes, body.Contact||'', body.rowId]]);
           } else {
-            sheet.getRange(i+1,1,1,15).setValues([[data[i][0], body.Name, body.Type, body.Flight, body.Date, body.Duration, body.Pax, body.Wants, body.WantsDates, body.WantsAfter||'', body.WantsBefore||'', body.AlsoDrop||'', body.ALDates||'', body.Notes, body.rowId]]);
+            sheet.getRange(i+1,1,1,16).setValues([[data[i][0], body.Name, body.Type, body.Flight, String(body.Date||''), body.Duration, body.Pax, body.Wants, String(body.WantsDates||''), body.WantsAfter||'', body.WantsBefore||'', body.AlsoDrop||'', body.ALDates||'', body.Notes, body.Contact||'', body.rowId]]);
           }
           break;
         }
@@ -571,14 +622,82 @@ function handleRequest(e) {
 
 document.getElementById('apps-script-code').textContent = APPS_SCRIPT;
 
-let SCRIPT_URL = localStorage.getItem('crewswap_url') || '';
+let SCRIPT_URL = localStorage.getItem('crewswap_url') || 'https://script.google.com/macros/s/AKfycbzJS1hO76ndwiovMYGl4nx0j5SniAlj6whNDOr1xppzaj5wi__muJS8aCqdKcOHXaSrlA/exec';
 if (SCRIPT_URL) document.getElementById('script-url').value = SCRIPT_URL;
-
-let ANTHROPIC_KEY = localStorage.getItem('crewswap_anthropic_key') || '';
-if (ANTHROPIC_KEY) document.getElementById('anthropic-key').value = ANTHROPIC_KEY;
 
 let allTrips = [], allPickups = [], currentFilter = 'all', tripType = 'Drop';
 let editingTrip = null;
+
+// ── SAVED CONTACT ────────────────────────────────────────────────────────
+const CONTACT_KEY = 'crewswap_contact';
+const PICKUP_CONTACT_KEY = 'crewswap_pickup_contact';
+const MINE_NAME_KEY = 'crewswap_my_name';
+
+function contactInit() {
+  const saved = localStorage.getItem(CONTACT_KEY);
+  const banner  = document.getElementById('saved-contact-banner');
+  const wrap    = document.getElementById('contact-input-wrap');
+  const welcome = document.getElementById('contact-welcome');
+  const cancelBtn = document.getElementById('contact-cancel-btn');
+
+  if (saved) {
+    // Show the locked saved-contact banner
+    document.getElementById('saved-contact-display').textContent = saved;
+    banner.style.display = 'flex';
+    wrap.style.display = 'none';
+    welcome.style.display = 'none';
+    cancelBtn.style.display = 'inline-block';
+    // Ensure hidden input has value for form submission
+    document.getElementById('f-contact').value = saved;
+  } else {
+    // No contact saved yet — show welcome prompt, hide banner
+    banner.style.display = 'none';
+    wrap.style.display = 'none';
+    welcome.style.display = 'flex';
+    cancelBtn.style.display = 'none';
+  }
+}
+
+function contactSave() {
+  const val = document.getElementById('f-contact').value.trim();
+  if (!val) { showToast('Enter your contact details first'); return; }
+  localStorage.setItem(CONTACT_KEY, val);
+  document.getElementById('saved-contact-display').textContent = val;
+  document.getElementById('saved-contact-banner').style.display = 'flex';
+  document.getElementById('contact-input-wrap').style.display = 'none';
+  document.getElementById('contact-welcome').style.display = 'none';
+  showToast('Contact saved — it\'ll auto-fill every time you post');
+}
+
+function contactStartEdit() {
+  const saved = localStorage.getItem(CONTACT_KEY) || '';
+  document.getElementById('f-contact').value = saved;
+  document.getElementById('saved-contact-banner').style.display = 'none';
+  document.getElementById('contact-input-wrap').style.display = 'block';
+  document.getElementById('contact-cancel-btn').style.display = 'inline-block';
+  document.getElementById('f-contact').focus();
+}
+
+function contactCancelEdit() {
+  const saved = localStorage.getItem(CONTACT_KEY);
+  if (saved) {
+    document.getElementById('saved-contact-banner').style.display = 'flex';
+    document.getElementById('contact-input-wrap').style.display = 'none';
+  } else {
+    document.getElementById('contact-input-wrap').style.display = 'none';
+    document.getElementById('contact-welcome').style.display = 'flex';
+  }
+}
+
+function contactDelete() {
+  if (!confirm('Remove your saved contact details?')) return;
+  localStorage.removeItem(CONTACT_KEY);
+  document.getElementById('f-contact').value = '';
+  document.getElementById('saved-contact-banner').style.display = 'none';
+  document.getElementById('contact-input-wrap').style.display = 'none';
+  document.getElementById('contact-welcome').style.display = 'flex';
+  showToast('Contact removed');
+}
 
 // ── NAV ───────────────────────────────────────────────────────────────────
 function showPage(id, el) {
@@ -587,7 +706,9 @@ function showPage(id, el) {
   document.getElementById('page-' + id).classList.add('active');
   if (el) el.classList.add('active');
   if (id === 'board') loadData();
-  if (id === 'pickup') { loadData(); renderPickups(); }
+  if (id === 'submit') contactInit();
+  if (id === 'pickup') { loadData(); renderPickups(); if (!pdYear) pdInit(); pickupContactInit(); }
+  if (id === 'mine') { mineInit(); loadData().then(() => renderMyListings()); }
   if (id === 'calendar') { loadData().then(() => renderCalendar()); }
 }
 
@@ -600,6 +721,7 @@ function setType(type, el) {
   document.getElementById('wants-date-group').style.display = isSwap ? 'flex' : 'none';
   document.getElementById('also-drop-group').style.display = isSwap ? 'flex' : 'none';
   if (!isSwap) document.getElementById('f-also-drop').checked = false;
+  if (isSwap && !wdYear) wdInit();
 }
 
 function setFilter(f, el) {
@@ -609,400 +731,178 @@ function setFilter(f, el) {
   renderBoard();
 }
 
-// ── PICKUP FB PARSER ─────────────────────────────────────────────────────
-function showPickupPaste() {
-  document.getElementById('pickup-paste-area').style.display = 'block';
-  document.getElementById('pickup-fail-card').style.display = 'none';
-  document.getElementById('pickup-post-text').focus();
-}
+// ── FLIGHT OTHER HANDLER ──────────────────────────────────────────────────
+function handleFlightChange(val) {
+  const other = document.getElementById('f-flight-other');
+  other.style.display = val === 'Other' ? 'block' : 'none';
+  if (val !== 'Other') other.value = '';
 
-function hidePickupPaste() {
-  document.getElementById('pickup-paste-area').style.display = 'none';
-  document.getElementById('pickup-post-text').value = '';
-  document.getElementById('pickup-parse-status').style.display = 'none';
-}
-
-function pickupPrompt() {
-  const today = new Date().toISOString().slice(0, 10);
-  return `You are helping parse a Qantas cabin crew Facebook post where someone is looking to PICK UP a trip.
-Today's date is ${today}.
-
-QF2 = Sydney↔Singapore (4 days). QF10 = Sydney↔Perth (5 or 6 day, temporarily 6 or 7 day).
-
-Return ONLY valid JSON, no other text, no markdown:
-{
-  "flight": "QF2" or "QF10" or "Any" if either is fine or not specified,
-  "duration": "5 day" or "6 day" or "7 day" or "" if QF2 or not specified,
-  "dates": "plain English description of preferred dates, e.g. 'any date in May' or 'flexible' or '1st-15th June'",
-  "notes": "any other detail in plain English, max 1 sentence",
-  "confidence": "high" or "medium" or "low",
-  "summary": "one sentence summary of what they want to pick up"
-}`;
-}
-
-function applyPickupResult(parsed) {
-  if (parsed.confidence === 'low') {
-    document.getElementById('pickup-fail-card').style.display = 'block';
-    document.getElementById('pickup-fail-body').textContent = parsed.summary || "Couldn't extract details — please fill in manually.";
-    return;
-  }
-  if (parsed.flight) document.getElementById('p-flight').value = parsed.flight;
-  if (parsed.duration) document.getElementById('p-duration').value = parsed.duration;
-  if (parsed.dates) document.getElementById('p-dates').value = parsed.dates;
-  if (parsed.notes) document.getElementById('p-notes').value = parsed.notes;
-  showToast(parsed.confidence === 'medium' ? 'Filled in — please double-check' : 'Details filled in — check and confirm below');
-  document.getElementById('p-name').scrollIntoView({ behavior: 'smooth', block: 'center' });
-  document.getElementById('p-name').focus();
-}
-
-async function parsePickupPost() {
-  const text = document.getElementById('pickup-post-text').value.trim();
-  if (!text) { showToast('Please paste a post first'); return; }
-  if (!ANTHROPIC_KEY) {
-    document.getElementById('pickup-fail-card').style.display = 'block';
-    document.getElementById('pickup-fail-body').textContent = 'No Anthropic API key saved — add one in Setup.';
-    return;
-  }
-  const btn = document.getElementById('pickup-read-btn');
-  const status = document.getElementById('pickup-parse-status');
-  btn.disabled = true; btn.textContent = 'Reading...';
-  status.style.display = 'block'; status.textContent = 'Asking Claude to read your post...';
-  document.getElementById('pickup-fail-card').style.display = 'none';
-  try {
-    const parsed = await callAnthropicAPI([{ role: 'user', content: pickupPrompt() + '\n\nPost:\n"""\n' + text + '\n"""' }]);
-    status.style.display = 'none';
-    hidePickupPaste();
-    applyPickupResult(Array.isArray(parsed) ? parsed[0] : parsed);
-  } catch(err) {
-    status.style.display = 'none';
-    document.getElementById('pickup-fail-card').style.display = 'block';
-    document.getElementById('pickup-fail-body').textContent = 'Error: ' + (err.message || 'something went wrong.');
-  }
-  btn.disabled = false; btn.textContent = 'Read post';
-}
-
-async function parsePickupImage(input) {
-  const file = input.files[0];
-  if (!file) return;
-  input.value = '';
-  if (!ANTHROPIC_KEY) {
-    document.getElementById('pickup-fail-card').style.display = 'block';
-    document.getElementById('pickup-fail-body').textContent = 'No Anthropic API key saved — add one in Setup.';
-    return;
-  }
-  document.getElementById('pickup-fail-card').style.display = 'none';
-  document.getElementById('pickup-image-progress').style.display = 'block';
-  document.getElementById('pickup-image-btn').disabled = true;
-  try {
-    const base64 = await new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result.split(',')[1]);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-    const parsed = await callAnthropicAPI([{
-      role: 'user',
-      content: [
-        { type: 'image', source: { type: 'base64', media_type: file.type || 'image/jpeg', data: base64 } },
-        { type: 'text', text: pickupPrompt() + '\n\nRead the Facebook post in the image above.' }
-      ]
-    }]);
-    document.getElementById('pickup-image-progress').style.display = 'none';
-    applyPickupResult(Array.isArray(parsed) ? parsed[0] : parsed);
-  } catch(err) {
-    document.getElementById('pickup-image-progress').style.display = 'none';
-    document.getElementById('pickup-fail-card').style.display = 'block';
-    document.getElementById('pickup-fail-body').textContent = 'Error: ' + (err.message || 'something went wrong.');
-  }
-  document.getElementById('pickup-image-btn').disabled = false;
-}
-
-function saveAnthropicKey() {
-  const key = document.getElementById('anthropic-key').value.trim();
-  if (!key.startsWith('sk-ant-')) { showToast("That doesn't look like a valid Anthropic key"); return; }
-  ANTHROPIC_KEY = key;
-  localStorage.setItem('crewswap_anthropic_key', key);
-  showToast('API key saved!');
-}
-
-function showFBPaste() {
-  document.getElementById('fb-paste-area').style.display = 'block';
-  document.getElementById('fb-fail-card').style.display = 'none';
-  document.getElementById('fb-post-text').focus();
-}
-
-function hideFBPaste() {
-  document.getElementById('fb-paste-area').style.display = 'none';
-  document.getElementById('fb-post-text').value = '';
-  document.getElementById('fb-parse-status').style.display = 'none';
-}
-
-function fbPromptInstructions() {
-  const today = new Date();
-  const todayISO = today.toISOString().slice(0, 10);
-  const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  const todayDay = dayNames[today.getDay()];
-
-  // Pre-calculate the next occurrence of each day name so Claude doesn't have to
-  function nextWeekday(targetDay) {
-    const diff = (targetDay - today.getDay() + 7) % 7 || 7;
-    const d = new Date(today);
-    d.setDate(d.getDate() + diff);
-    return d.toISOString().slice(0, 10);
-  }
-  const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
-  const tomorrowISO = tomorrow.toISOString().slice(0, 10);
-  const dayRef = dayNames.map((name, i) => `"this ${name}" = ${nextWeekday(i)}`).join(', ');
-
-  return `You are helping parse a Qantas cabin crew Facebook post about trip swaps.
-Today is ${todayISO} (${todayDay}). Tomorrow is ${tomorrowISO}.
-Relative day reference guide: ${dayRef}.
-Use these exact dates when the post says "this Sunday", "next Monday", "tomorrow" etc — do not calculate yourself.
-
-The crew fly two routes:
-- QF2: Sydney↔Singapore, always 4 days
-- QF10: Sydney↔Perth, either 5 day or 6 day (temporarily 6 or 7 day)
-- SBY: Standby, 3 day block — can only swap with another Standby
-
-The post may mention ONE trip or MULTIPLE trips. Extract ALL trips mentioned.
-Return ONLY a valid JSON array, no other text, no markdown.
-
-Each trip in the array must have this structure:
-{
-  "type": "Drop" or "Swap" or "unknown",
-  "flight": "QF2" or "QF10" or "SBY" or "",
-  "date": "YYYY-MM-DD" or "" if not mentioned or unclear,
-  "duration": "4 day" or "5 day" or "6 day" or "7 day" or "3 day" or "" if unclear,
-  "pax": "" or "Paxing out" or "Paxing home",
-  "wants": "QF2" or "QF10" or "QF2 or QF10" or "" if dropping,
-  "alsoDrop": true if they say "or drop", "happy to drop if no swap", "or just drop it", "or move to [date]", "or swap to [date]" — i.e. they have a preferred outcome but will also accept a drop or a different date, otherwise false,
-  "wantsDate": comma-separated YYYY-MM-DD dates if specific dates are given e.g. "2026-04-06,2026-04-07,2026-04-08", or "" if flexible or not mentioned,
-  "wantsAfter": "YYYY-MM-DD" if they say "after [date]", "later than [date]", "any day after", "later" (relative to their trip date) — the day after the reference date,
-  "wantsBefore": "YYYY-MM-DD" if they say "before [date]", "earlier than [date]" — the day before the reference date,
-  "notes": "any other relevant detail in plain English, max 1 sentence",
-  "confidence": "high" or "medium" or "low",
-  "summary": "one sentence plain English summary of what you understood for this trip"
-}
-
-Rules:
-- IMPORTANT: This form is for posting YOUR OWN trip. If the post is asking whether someone ELSE wants to drop or swap (e.g. "would anyone like to drop?", "does anyone have a QF2 to drop?", "looking for someone to drop") — the poster does not have a trip to offer, so return an empty array []. They should use the Pick Up a Trip tab instead.
-- "Drop" or "to drop" means the person wants to give the trip away — it does NOT mean paxing. Only set pax to "Paxing out" or "Paxing home" if the post explicitly uses the word "pax" or "positioning".
-- If they say "drop" or "give away" or "anyone want MY trip" with no mention of wanting something back → type is Drop
-- If they mention wanting something in return → type is Swap. This includes phrases like "[flight] for [other date/flight]", "swap for", "in exchange for", "looking for", "want a [flight]" — the word "for" followed by a date or flight strongly implies a Swap.
-- If they want to move their trip to a different date on the same route (e.g. "move my SIN to 27th"), set wants to the same flight as the offered flight — e.g. if offering QF2, set wants to "QF2"
-- If the post says "drop or swap" with no specific date — set type to Swap, alsoDrop to true, wantsDate blank
-- If multiple preferred dates are given for the wanted trip (e.g. "6, 7 or 8 April"), put them ALL as comma-separated ISO dates in wantsDate e.g. "2026-04-06,2026-04-07,2026-04-08" — do NOT put them in notes
-- If the post says "any day later", "later date", "after this" or similar with no specific date, set wantsAfter to the day after their offered trip date
-- If the post says "later" relative to a specific date, set wantsAfter to the day after that date
-- If the post says "before" relative to a specific date, set wantsBefore to the day before that date
-- If the post lists multiple dates for the same flight offered, create one entry per date
-- If "on or around" or "flexible" or "±" is mentioned for a date, put the exact date and add "flexible ±1-2 days" to notes
-- If date is completely vague (e.g. "early April" with no specific dates at all) put "" for wantsDate and capture it in notes
-- If duration is not mentioned and flight is QF2, assume 4 day. If QF10 and duration is not mentioned, leave duration blank — do NOT assume 4 day.
-- If a pax note applies to one specific date (e.g. "charter with pax out"), apply it only to that trip entry
-- Infer the year from context — if the month mentioned has already passed this year, use next year.
-- If you cannot find any trips, return an empty array [].`;
-}
-
-// ── MULTI-TRIP QUEUE ──────────────────────────────────────────────────────
-let fbTripQueue = [];
-let fbQueueTotal = 0;
-
-function loadNextQueuedTrip() {
-  if (!fbTripQueue.length) {
-    document.getElementById('fb-queue-banner').style.display = 'none';
-    return;
-  }
-  const trip = fbTripQueue[0];
-  const remaining = fbTripQueue.length;
-  const done = fbQueueTotal - remaining;
-
-  document.getElementById('fb-queue-banner').style.display = 'block';
-  document.getElementById('fb-queue-label').textContent =
-    `Trip ${done + 1} of ${fbQueueTotal} — ${trip.summary || 'check details below'}`;
-
-  fillFormFromParsed(trip);
-}
-
-function skipQueuedTrip() {
-  fbTripQueue.shift();
-  if (fbTripQueue.length) {
-    loadNextQueuedTrip();
-  } else {
-    document.getElementById('fb-queue-banner').style.display = 'none';
-    showToast('All trips skipped');
+  // SBY, EPs and Training are swap-only — force Swap type and hide Also Drop
+  if (val === 'SBY' || val === 'EPs' || val === 'Training') {
+    tripType = 'Swap';
+    document.querySelectorAll('.toggle-btn').forEach((b, i) => b.classList.toggle('active', i === 1));
+    document.getElementById('wants-group').style.display = 'flex';
+    document.getElementById('wants-date-group').style.display = 'flex';
+    document.getElementById('also-drop-group').style.display = 'none';
+    document.getElementById('f-also-drop').checked = false;
+    if (!wdYear) wdInit();
+    // Pre-select the matching flight in wants
+    document.getElementById('f-wants').value = val;
+    document.getElementById('f-wants-other').style.display = 'none';
+    showToast(val + ' is swap-only — can only swap with another ' + val);
   }
 }
 
-function fillFormFromParsed(parsed) {
-  // JS-level fallback: QF2 is always 4 day
-  if (parsed.flight === 'QF2' && !parsed.duration) parsed.duration = '4 day';
-
-  if (parsed.flight) document.getElementById('f-flight').value = parsed.flight;
-  if (parsed.date) document.getElementById('f-date').value = parsed.date;
-  if (parsed.duration) document.getElementById('f-duration').value = parsed.duration;
-  if (parsed.pax) document.getElementById('f-pax').value = parsed.pax;
-  if (parsed.notes) document.getElementById('f-notes').value = parsed.notes;
-
-  const isSwap = parsed.type === 'Swap';
-  tripType = parsed.type || 'Drop';
-  document.querySelectorAll('.toggle-btn').forEach((b, i) => b.classList.toggle('active', i === (isSwap ? 1 : 0)));
-  document.getElementById('wants-group').style.display = isSwap ? 'flex' : 'none';
-  document.getElementById('wants-date-group').style.display = isSwap ? 'flex' : 'none';
-  if (isSwap && parsed.wants) document.getElementById('f-wants').value = parsed.wants;
-  if (isSwap && parsed.wantsDate) document.getElementById('f-wants-date').value = parsed.wantsDate;
-  if (isSwap && parsed.wantsAfter) document.getElementById('f-wants-after').value = parsed.wantsAfter;
-  if (isSwap && parsed.wantsBefore) document.getElementById('f-wants-before').value = parsed.wantsBefore;
-  if (isSwap && parsed.alsoDrop) {
-    document.getElementById('f-also-drop').checked = true;
-    document.getElementById('also-drop-group').style.display = 'flex';
-  }
-
-  // Flag missing duration for QF10
-  const durationEl = document.getElementById('f-duration');
-  if (parsed.flight === 'QF10' && !parsed.duration) {
-    durationEl.style.borderColor = 'var(--red)';
-    durationEl.style.boxShadow = '0 0 0 3px rgba(239,68,68,.15)';
-    setTimeout(() => {
-      durationEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      durationEl.focus();
-    }, 300);
-    showToast('⚠️ QF10 duration not found — please select 5 or 6 day');
-  } else {
-    durationEl.style.borderColor = '';
-    durationEl.style.boxShadow = '';
-    document.getElementById('f-name').scrollIntoView({ behavior: 'smooth', block: 'center' });
-    document.getElementById('f-name').focus();
-  }
+function handleWantsChange(val) {
+  const other = document.getElementById('f-wants-other');
+  other.style.display = val === 'Other' ? 'block' : 'none';
+  if (val !== 'Other') other.value = '';
 }
 
-// Clear duration highlight when user selects a value
-document.getElementById('f-duration').addEventListener('change', function() {
-  this.style.borderColor = '';
-  this.style.boxShadow = '';
-});
-
-function applyFBResult(tripsArray) {
-  // Filter out unknowns and low-confidence
-  const valid = tripsArray.filter(t => t.type !== 'unknown' && t.confidence !== 'low');
-
-  if (!valid.length) {
-    const first = tripsArray[0];
-    document.getElementById('fb-fail-card').style.display = 'block';
-    document.getElementById('fb-fail-body').textContent = tripsArray.length === 0
-      ? "This post looks like you're asking someone else to drop — try the Pick Up a Trip tab instead."
-      : (first && first.summary) || "Couldn't extract trip details — please fill in manually.";
-    return;
-  }
-
-  if (valid.length === 1) {
-    // Single trip — just fill the form as before
-    fillFormFromParsed(valid[0]);
-    showToast(valid[0].confidence === 'medium' ? 'Filled in — please double-check the details' : 'Details filled in — check and confirm below');
-  } else {
-    // Multiple trips — set up queue
-    fbTripQueue = [...valid];
-    fbQueueTotal = valid.length;
-    loadNextQueuedTrip();
-    showToast(`${valid.length} trips found — posting one at a time`);
-  }
+function getFlightValue() {
+  const sel = document.getElementById('f-flight').value;
+  if (sel === 'Other') return document.getElementById('f-flight-other').value.trim().toUpperCase();
+  return sel;
 }
 
-async function callAnthropicAPI(messages) {
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': ANTHROPIC_KEY,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true'
-    },
-    body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1000, messages })
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error?.message || 'API error');
-  const raw = data.content.map(c => c.text || '').join('').replace(/```json|```/g, '').trim();
-  console.log('[FB parser] raw response:', raw);
-  const parsed = JSON.parse(raw);
-  // Always return an array
-  return Array.isArray(parsed) ? parsed : [parsed];
+function getWantsValue() {
+  const sel = document.getElementById('f-wants').value;
+  if (sel === 'Other') return document.getElementById('f-wants-other').value.trim().toUpperCase();
+  return sel;
 }
 
-async function parseFBPost() {
-  const text = document.getElementById('fb-post-text').value.trim();
-  if (!text) { showToast('Please paste a post first'); return; }
-  if (!ANTHROPIC_KEY) {
-    document.getElementById('fb-fail-card').style.display = 'block';
-    document.getElementById('fb-fail-body').textContent = 'No Anthropic API key saved — add one in the Setup tab to use this feature.';
-    return;
-  }
-
-  const btn = document.getElementById('fb-read-btn');
-  const status = document.getElementById('fb-parse-status');
-  btn.disabled = true; btn.textContent = 'Reading...';
-  status.style.display = 'block'; status.textContent = 'Asking Claude to read your post...';
-  document.getElementById('fb-fail-card').style.display = 'none';
-
-  try {
-    const prompt = fbPromptInstructions() + `\n\nPost:\n"""\n${text}\n"""`;
-    const parsed = await callAnthropicAPI([{ role: 'user', content: prompt }]);
-    status.style.display = 'none';
-    hideFBPaste();
-    applyFBResult(parsed);
-  } catch (err) {
-    status.style.display = 'none';
-    document.getElementById('fb-fail-card').style.display = 'block';
-    document.getElementById('fb-fail-body').textContent = 'Error: ' + (err.message || 'something went wrong. Check your API key in Setup.');
-    console.error('FB parse error:', err);
-  }
-
-  btn.disabled = false; btn.textContent = 'Read post';
+function getDurationValue() {
+  const n = document.getElementById('f-duration').value.trim();
+  if (!n) return '';
+  return n + ' day';
 }
 
-async function parseFBImage(input) {
-  const file = input.files[0];
-  if (!file) return;
-  input.value = '';
+// ── WANTS DATE PICKER ─────────────────────────────────────────────────────
+let wdSelectedDates = new Set();
+let wdYear, wdMonth;
 
-  if (!ANTHROPIC_KEY) {
-    document.getElementById('fb-fail-card').style.display = 'block';
-    document.getElementById('fb-fail-body').textContent = 'No Anthropic API key saved — add one in the Setup tab to use this feature.';
-    return;
-  }
-
-  document.getElementById('fb-fail-card').style.display = 'none';
-  document.getElementById('fb-image-progress').style.display = 'block';
-  document.getElementById('fb-image-btn').disabled = true;
-
-  try {
-    // Convert image to base64
-    const base64 = await new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result.split(',')[1]);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-
-    const mediaType = file.type || 'image/jpeg';
-    const parsed = await callAnthropicAPI([{
-      role: 'user',
-      content: [
-        { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } },
-        { type: 'text', text: fbPromptInstructions() + '\n\nRead the Facebook post in the image above and extract the trip details.' }
-      ]
-    }]);
-
-    document.getElementById('fb-image-progress').style.display = 'none';
-    applyFBResult(parsed);
-  } catch (err) {
-    document.getElementById('fb-image-progress').style.display = 'none';
-    document.getElementById('fb-fail-card').style.display = 'block';
-    document.getElementById('fb-fail-body').textContent = 'Error: ' + (err.message || 'something went wrong. Check your API key in Setup.');
-    console.error('FB image parse error:', err);
-  }
-
-  document.getElementById('fb-image-btn').disabled = false;
+function wdInit() {
+  const now = new Date();
+  wdYear = now.getFullYear();
+  wdMonth = now.getMonth();
+  wdRender();
 }
+
+function wdRender() {
+  const label = new Date(wdYear, wdMonth, 1).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+  document.getElementById('wd-month-label').textContent = label;
+
+  const grid = document.getElementById('wd-grid');
+  const today = new Date(); today.setHours(0,0,0,0);
+  const firstDay = new Date(wdYear, wdMonth, 1);
+  const daysInMonth = new Date(wdYear, wdMonth + 1, 0).getDate();
+
+  let dow = firstDay.getDay() - 1;
+  if (dow < 0) dow = 6;
+
+  let html = '';
+  for (let i = 0; i < dow; i++) html += '<div></div>';
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = new Date(wdYear, wdMonth, d);
+    const iso = `${wdYear}-${String(wdMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isPast = date < today;
+    const isSelected = wdSelectedDates.has(iso);
+    const style = isPast
+      ? 'background:#F3F4F6;color:#D1D5DB;cursor:default;'
+      : isSelected
+        ? 'background:var(--sky);color:#fff;cursor:pointer;font-weight:600;'
+        : 'background:#fff;color:var(--text);cursor:pointer;';
+    html += `<div onclick="${isPast ? '' : `wdToggle('${iso}')`}" style="text-align:center;padding:5px 2px;border-radius:6px;font-size:12px;border:1px solid ${isSelected ? 'var(--sky)' : 'var(--border)'};${style}">${d}</div>`;
+  }
+  grid.innerHTML = html;
+  wdUpdateDisplay();
+}
+
+function wdToggle(iso) {
+  if (wdSelectedDates.has(iso)) wdSelectedDates.delete(iso);
+  else wdSelectedDates.add(iso);
+  wdRender();
+  // Update hidden input
+  const sorted = [...wdSelectedDates].sort();
+  document.getElementById('f-wants-date').value = sorted.join(',');
+}
+
+function wdPickerPrev() {
+  wdMonth--;
+  if (wdMonth < 0) { wdMonth = 11; wdYear--; }
+  wdRender();
+}
+
+function wdPickerNext() {
+  wdMonth++;
+  if (wdMonth > 11) { wdMonth = 0; wdYear++; }
+  wdRender();
+}
+
+function wdUpdateDisplay() {
+  const el = document.getElementById('wd-selected-display');
+  if (!wdSelectedDates.size) { el.textContent = 'No dates selected — will show as flexible'; return; }
+  const sorted = [...wdSelectedDates].sort();
+  el.textContent = 'Selected: ' + sorted.map(d => fmtDate(d)).join(', ');
+}
+
+// ── PICKUP DATE PICKER ────────────────────────────────────────────────────
+let pdSelectedDates = new Set();
+let pdYear, pdMonth;
+
+function pdInit() {
+  const now = new Date();
+  pdYear = now.getFullYear();
+  pdMonth = now.getMonth();
+  pdRender();
+}
+
+function pdRender() {
+  const label = new Date(pdYear, pdMonth, 1).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+  document.getElementById('pd-month-label').textContent = label;
+  const grid = document.getElementById('pd-grid');
+  const today = new Date(); today.setHours(0,0,0,0);
+  const firstDay = new Date(pdYear, pdMonth, 1);
+  const daysInMonth = new Date(pdYear, pdMonth + 1, 0).getDate();
+  let dow = firstDay.getDay() - 1; if (dow < 0) dow = 6;
+  let html = '';
+  for (let i = 0; i < dow; i++) html += '<div></div>';
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = new Date(pdYear, pdMonth, d);
+    const iso = `${pdYear}-${String(pdMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isPast = date < today;
+    const isSelected = pdSelectedDates.has(iso);
+    const style = isPast ? 'background:#F3F4F6;color:#D1D5DB;cursor:default;'
+      : isSelected ? 'background:var(--sky);color:#fff;cursor:pointer;font-weight:600;'
+      : 'background:#fff;color:var(--text);cursor:pointer;';
+    html += `<div onclick="${isPast ? '' : `pdToggle('${iso}')`}" style="text-align:center;padding:5px 2px;border-radius:6px;font-size:12px;border:1px solid ${isSelected ? 'var(--sky)' : 'var(--border)'};${style}">${d}</div>`;
+  }
+  grid.innerHTML = html;
+  pdUpdateDisplay();
+}
+
+function pdToggle(iso) {
+  if (pdSelectedDates.has(iso)) pdSelectedDates.delete(iso);
+  else pdSelectedDates.add(iso);
+  pdRender();
+  document.getElementById('p-dates').value = [...pdSelectedDates].sort().join(',');
+}
+
+function pdPickerPrev() {
+  pdMonth--; if (pdMonth < 0) { pdMonth = 11; pdYear--; } pdRender();
+}
+
+function pdPickerNext() {
+  pdMonth++; if (pdMonth > 11) { pdMonth = 0; pdYear++; } pdRender();
+}
+
+function pdUpdateDisplay() {
+  const el = document.getElementById('pd-selected-display');
+  if (!pdSelectedDates.size) { el.textContent = 'No dates selected — will show as flexible'; return; }
+  el.textContent = 'Selected: ' + [...pdSelectedDates].sort().map(d => fmtDate(d)).join(', ');
+}
+
+
 
 // ── DATA ──────────────────────────────────────────────────────────────────
 async function loadData() {
@@ -1011,30 +911,42 @@ async function loadData() {
     return;
   }
   try {
+    document.getElementById('board-list').innerHTML = '<div class="empty">Loading...</div>';
     const res = await fetch(SCRIPT_URL + '?action=get');
     const json = await res.json();
     if (json.status === 'ok') {
-      allTrips = (json.swaps || []).map(processTrip);
-      allPickups = (json.pickups || []);
-      console.log('[SwapBoard] loaded', allTrips.length, 'swaps,', allPickups.length, 'pickups', allPickups);
+      allTrips = (json.swaps || []).map(fixContactRowId).map(processTrip);
+      allPickups = (json.pickups || []).map(fixContactRowId);
+      console.log('[SwapBoard] loaded', allTrips.length, 'swaps,', allPickups.length, 'pickups');
+      if (allPickups.length) {
+        allPickups.forEach(p => console.log('[Pickup]', p.Name, '| Flight:', p.Flight, '| Dates raw:', JSON.stringify(p.Dates), '| Contact:', JSON.stringify(p.Contact), '| RowID:', p.RowID));
+      }
+      if (allTrips.length) {
+        allTrips.forEach(t => console.log('[Swap]', t.Name, '| Type:', t.Type, '| AlsoDrop:', t.AlsoDrop, '| Flight:', t.Flight, '| Date:', t.Date, '| Contact:', JSON.stringify(t.Contact), '| RowID:', t.RowID));
+      }
       // Run cleanup once per day
-      const today = new Date().toISOString().slice(0, 10);
+      const today = ukISO(new Date());
       const lastCleanup = localStorage.getItem('crewswap_last_cleanup');
       if (lastCleanup !== today) {
-        await autoCleanup(allTrips, allPickups);
-        localStorage.setItem('crewswap_last_cleanup', today);
-        // Reload fresh data after cleanup
-        const res2 = await fetch(SCRIPT_URL + '?action=get');
-        const json2 = await res2.json();
-        if (json2.status === 'ok') {
-          allTrips = (json2.swaps || []).map(processTrip);
-          allPickups = (json2.pickups || []);
+        try {
+          await autoCleanup(allTrips, allPickups);
+          localStorage.setItem('crewswap_last_cleanup', today);
+          const res2 = await fetch(SCRIPT_URL + '?action=get');
+          const json2 = await res2.json();
+          if (json2.status === 'ok') {
+            allTrips = (json2.swaps || []).map(fixContactRowId).map(processTrip);
+            allPickups = (json2.pickups || []).map(fixContactRowId);
+          }
+        } catch(cleanupErr) {
+          console.warn('Cleanup error (non-fatal):', cleanupErr);
         }
       }
       findMatches();
-      renderBoard();
+      try { renderBoard(); } catch(renderErr) { console.error('renderBoard error:', renderErr); }
       updateStats();
       renderPickups();
+    } else {
+      document.getElementById('board-list').innerHTML = '<div class="empty">Could not load data. Check your script URL in Setup.</div>';
     }
   } catch(e) {
     document.getElementById('board-list').innerHTML = '<div class="empty">Could not load data. Check your script URL in Setup.</div>';
@@ -1042,7 +954,7 @@ async function loadData() {
 }
 
 async function autoCleanup(swaps, pickups) {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = ukISO(new Date());
 
   const deletePromises = [];
 
@@ -1107,6 +1019,23 @@ async function autoCleanup(swaps, pickups) {
   if (deletePromises.length) await Promise.all(deletePromises);
 }
 
+// ── CONTACT / ROWID REPAIR ───────────────────────────────────────────────
+// Old rows (and some new ones from a previously-deployed script version) have
+// the RowID timestamp sitting in the Contact column, with RowID left blank.
+// Detect this and swap them so the rest of the app sees correct data.
+function fixContactRowId(row) {
+  const contact = String(row.Contact || '').trim();
+  const rowId   = String(row.RowID   || '').trim();
+  // A RowID is always a 13-digit Unix timestamp (ms). Contact should never be
+  // a pure 10+ digit number — if it is, it's a misplaced RowID.
+  const looksLikeRowId = /^\d{10,}$/.test(contact);
+  if (looksLikeRowId) {
+    // If RowID is missing, rescue it from Contact; either way clear Contact
+    return { ...row, RowID: rowId || contact, Contact: '' };
+  }
+  return row;
+}
+
 function processTrip(t) {
   const ts = t.Timestamp ? new Date(t.Timestamp) : null;
   const daysLeft = ts ? Math.ceil(42 - (Date.now() - ts) / 86400000) : 42;
@@ -1128,7 +1057,7 @@ function tripDays(dateStr, durationStr) {
   for (let i = 0; i < n; i++) {
     const d = new Date(start);
     d.setDate(d.getDate() + i);
-    days.push(d.toISOString().slice(0, 10));
+    days.push(ukISO(d));
   }
   return days;
 }
@@ -1174,9 +1103,12 @@ function sameDate(d1, d2) {
   return toLocalISO(d1) === toLocalISO(d2);
 }
 
+function isSameTypeOnly(f) { return f === 'SBY' || f === 'EPs' || f === 'Training'; }
+
 function flightMatch(wantsFlight, offerFlight) {
-  // Does what person wants match what's being offered?
   if (!wantsFlight || !offerFlight) return false;
+  // SBY and EPs must match exactly with same type
+  if (isSameTypeOnly(offerFlight) || isSameTypeOnly(wantsFlight)) return wantsFlight === offerFlight;
   if (wantsFlight === 'QF2 or QF10') return offerFlight === 'QF2' || offerFlight === 'QF10';
   return wantsFlight === offerFlight;
 }
@@ -1222,9 +1154,28 @@ function extractPickupDates(datesText) {
   const now = new Date();
   const MONTHS = {jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
 
+  // Handle ISO timestamp format e.g. 2026-04-24T23:00:00.000Z — extract UK date
+  const reTS = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/g;
+  let m;
+  while ((m = reTS.exec(datesText)) !== null) {
+    results.push(ukISO(new Date(m[0])));
+  }
+
+  // Handle Apps Script / JS Date.toString() format e.g. "Thu May 08 2026 00:00:00 GMT+0000 (UTC)"
+  // Apps Script serialises Date objects from getValues() in this long format
+  const reAS = /[A-Za-z]{3}\s+([A-Za-z]{3})\s+(\d{1,2})\s+(\d{4})/g;
+  const AS_MONTHS = {jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
+  while ((m = reAS.exec(datesText)) !== null) {
+    const mo = AS_MONTHS[m[1].toLowerCase()];
+    const day = parseInt(m[2]);
+    const year = parseInt(m[3]);
+    if (mo !== undefined && day >= 1 && day <= 31 && year > 2000) {
+      results.push(`${year}-${String(mo+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`);
+    }
+  }
+
   // Match DD/MM or D/M
   const re1 = /\b(\d{1,2})\/(\d{1,2})\b/g;
-  let m;
   while ((m = re1.exec(datesText)) !== null) {
     const day = parseInt(m[1]), mo = parseInt(m[2]) - 1;
     if (day >= 1 && day <= 31 && mo >= 0 && mo <= 11) {
@@ -1248,9 +1199,9 @@ function extractPickupDates(datesText) {
     }
   }
 
-  // Match YYYY-MM-DD
-  const re3 = /\b(\d{4})-(\d{2})-(\d{2})\b/g;
-  while ((m = re3.exec(datesText)) !== null) results.push(m[0]);
+  // Match YYYY-MM-DD (plain, no timestamp)
+  const re3 = /\b(\d{4}-\d{2}-\d{2})\b(?!T)/g;
+  while ((m = re3.exec(datesText)) !== null) results.push(m[1]);
 
   return [...new Set(results)]; // deduplicate
 }
@@ -1278,8 +1229,8 @@ function findMatches() {
           noteB = 'Duration swap with ' + a.Name + ' — your ' + dB + ' ↔ their ' + dA;
         }
       }
-      // Regular swap
-      else if (isQF(a.Flight) && isQF(b.Flight)) {
+      // Regular swap (QF routes, SBY, EPs)
+      else if (isQF(a.Flight) && isQF(b.Flight) || isSameTypeOnly(a.Flight) && a.Flight === b.Flight) {
         // Both must have stated what they want — blank Wants means we can't confirm compatibility
         const aWantsB = a.Wants && flightMatch(a.Wants, b.Flight);
         const bWantsA = b.Wants && flightMatch(b.Wants, a.Flight);
@@ -1345,6 +1296,9 @@ function renderBoard() {
     if (currentFilter === 'swap') return t.Type === 'Swap' && !t.expired;
     if (currentFilter === 'matched') return t.matched && !t.expired;
     if (currentFilter === 'pickup') return false; // only show pickup cards
+    if (currentFilter === 'sby') return t.Flight === 'SBY' && !t.expired;
+    if (currentFilter === 'eps') return t.Flight === 'EPs' && !t.expired;
+    if (currentFilter === 'training') return t.Flight === 'Training' && !t.expired;
     return !t.expired;
   });
 
@@ -1357,15 +1311,61 @@ function renderBoard() {
     return;
   }
 
-  // Sort trips: matched first, then by trip date ascending
-  trips.sort((a, b) => {
-    if (b.matched !== a.matched) return b.matched - a.matched;
+  // Sort: group matched pairs together (by matchWith partner), then unmatched by date
+  // Build a stable sort that keeps matched pairs adjacent
+  const matchedTrips = trips.filter(t => t.matched);
+  const unmatchedTrips = trips.filter(t => !t.matched);
+
+  // Sort unmatched by date then name
+  unmatchedTrips.sort((a, b) => {
     const da = a.Date ? new Date(a.Date) : new Date('9999');
     const db = b.Date ? new Date(b.Date) : new Date('9999');
-    return da - db;
+    if (da - db !== 0) return da - db;
+    return (a.Name || '').localeCompare(b.Name || '');
   });
 
-  const tripCards = trips.map(t => {
+  // Group matched trips into pairs/groups by shared matchWith, then sort groups by earliest date then name
+  const seen = new Set();
+  const matchGroups = [];
+  matchedTrips.forEach(t => {
+    if (seen.has(t.RowID || t._row)) return;
+    seen.add(t.RowID || t._row);
+    const group = [t];
+    // Find their partners in matchedTrips
+    if (t.matchWith) {
+      t.matchWith.split(', ').forEach(partnerName => {
+        const partner = matchedTrips.find(m =>
+          m.Name === partnerName && !seen.has(m.RowID || m._row)
+        );
+        if (partner) { seen.add(partner.RowID || partner._row); group.push(partner); }
+      });
+    }
+    // Sort within group by date then name
+    group.sort((a, b) => {
+      const da = a.Date ? new Date(a.Date) : new Date('9999');
+      const db = b.Date ? new Date(b.Date) : new Date('9999');
+      if (da - db !== 0) return da - db;
+      return (a.Name || '').localeCompare(b.Name || '');
+    });
+    matchGroups.push(group);
+  });
+  // Sort groups by the earliest date in each group, then by first name
+  matchGroups.sort((ga, gb) => {
+    const da = ga[0].Date ? new Date(ga[0].Date) : new Date('9999');
+    const db = gb[0].Date ? new Date(gb[0].Date) : new Date('9999');
+    if (da - db !== 0) return da - db;
+    return (ga[0].Name || '').localeCompare(gb[0].Name || '');
+  });
+  // For pair-row rendering we still want matchGroups structure, but for solo cards
+  // we render ALL trips in date order (matched green, unmatched normal)
+  const allTripsSorted = [...trips].sort((a, b) => {
+    const da = a.Date ? new Date(a.Date) : new Date('9999');
+    const db = b.Date ? new Date(b.Date) : new Date('9999');
+    if (da - db !== 0) return da - db;
+    return (a.Name || '').localeCompare(b.Name || '');
+  });
+
+  const tripCards = allTripsSorted.map(t => {
     const initials = t.Name ? t.Name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : '??';
     const dateStr = fmtDate(t.Date);
     const daysStr = t.expiring ? t.daysLeft + 'd left' : t.daysLeft + ' days left';
@@ -1378,13 +1378,12 @@ function renderBoard() {
       <div class="trip-main">
         <div class="trip-top">
           <span class="trip-name">${t.Name}</span>
-          <span class="badge badge-${t.AlsoDrop === 'true' || t.AlsoDrop === true ? 'swapdrop' : t.Type.toLowerCase()}">${t.AlsoDrop === 'true' || t.AlsoDrop === true ? 'Swap or Drop' : t.Type}</span>
-          ${t.Flight ? `<span class="badge badge-flight">${t.Flight}</span>` : ''}
+          <span class="badge badge-${t.AlsoDrop === 'true' || t.AlsoDrop === true ? 'swapdrop' : (t.Type||'swap').toLowerCase()}">${t.AlsoDrop === 'true' || t.AlsoDrop === true ? 'Swap or Drop' : (t.Type||'Swap')}</span>
           ${t.matched ? '<span class="badge badge-match">Match found</span>' : ''}
-          ${t.inChain ? '<span class="badge badge-chain">Part of a chain</span>' : ''}
           ${t.expiring ? '<span class="badge badge-expiring">Expiring soon</span>' : ''}
         </div>
         <div class="trip-details">
+          ${t.Flight ? `<span><strong>${t.Flight}</strong></span>` : ''}
           ${dateStr ? `<span>${dateStr}</span>` : ''}
           ${t.Duration ? `<span>${t.Duration}</span>` : ''}
           ${paxStr ? `<span>${paxStr}</span>` : ''}
@@ -1399,13 +1398,17 @@ function renderBoard() {
                 : ''
         }</div>` : ''}
         ${t.Notes ? `<div class="trip-wants">${t.Notes}</div>` : ''}
-        ${t.matched && t.matchNote && !t.inChain ? `<div class="match-note">${t.matchNote}</div>` : ''}
         ${t.inChain && t.chainNote ? `<div class="match-note" style="color:#5B21B6;">🔗 ${t.chainNote}</div>` : ''}
-      </div>
-      <div class="trip-days">${daysStr}</div>
-      <div class="card-actions">
-        <button class="btn-edit" onclick="startEdit(${JSON.stringify(t).split('"').join('&quot;')})">Edit</button>
-        <button class="btn-delete" onclick="deleteTrip('${rowId}','Swaps')">Delete</button>
+        ${(() => {
+          const cu = contactUrl(t.Contact);
+          return cu
+            ? `<button onclick="openContact(${JSON.stringify(t.Contact).split('"').join('&quot;')})" style="display:inline-block;margin-top:6px;padding:5px 12px;background:var(--green);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">💬 Direct message</button>`
+            : `<button onclick="showToast('No contact info for this listing')" style="display:inline-block;margin-top:6px;padding:5px 12px;background:var(--border);color:var(--grey);border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">💬 Direct message</button>`;
+        })()}
+        <div class="card-actions">
+          <button class="btn-edit" onclick="startEdit(${JSON.stringify(t).split('"').join('&quot;')})">Edit</button>
+          <button class="btn-delete" onclick="deleteTrip('${rowId}','Swaps')">Delete</button>
+        </div>
       </div>
     </div>`;
   });
@@ -1426,28 +1429,55 @@ function renderBoard() {
         </div>
         <div class="trip-details">
           ${p.Duration ? `<span>${p.Duration}</span>` : ''}
-          ${p.Dates ? `<span>${p.Dates}</span>` : ''}
+          ${p.Dates ? `<span>${p.Dates.split(',').map(d=>fmtDate(d.trim())).filter(Boolean).join(', ')}</span>` : ''}
         </div>
         ${p.Notes ? `<div class="trip-wants">${p.Notes}</div>` : ''}
-        ${p.matched && p.matchNote ? `<div class="match-note">${p.matchNote}</div>` : ''}
-      </div>
-      <div class="card-actions">
-        <button class="btn-delete" onclick="deleteTrip('${rowId}','Pickups')">Delete</button>
+        ${p.matched && p.matchNote ? `<div class="match-note">${p.matchNote.split(' · Also: ').map(n => '🟢 ' + n).join('<br>')}</div>` : ''}
+        ${(() => { const cu = contactUrl(p.Contact); return cu ? `<button onclick="openContact(${JSON.stringify(p.Contact).split('"').join('&quot;')})" style="display:inline-block;margin-top:6px;padding:5px 12px;background:var(--green);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">💬 Direct message</button>` : `<button onclick="showToast('No contact info for this listing')" style="display:inline-block;margin-top:6px;padding:5px 12px;background:var(--border);color:var(--grey);border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">💬 Direct message</button>`; })()}
+        <div class="card-actions">
+          <button class="btn-delete" onclick="deleteTrip('${rowId}','Pickups')">Delete</button>
+        </div>
       </div>
     </div>` };
   });
 
-  // Merge trips and pickups, sort matched first
-  const allCards = [
-    ...tripCards.map((html, i) => ({ matched: trips[i].matched, date: trips[i].Date || '', html })),
-    ...pickupCards
-  ];
-  allCards.sort((a, b) => {
-    if (b.matched !== a.matched) return (b.matched ? 1 : 0) - (a.matched ? 1 : 0);
-    return 0;
+  // Build HTML: matched pairs side-by-side first, then ALL trips as solo cards (date order), then pickups
+  const seenPaired = new Set();
+  let boardHTML = '';
+
+  // First pass: render all match pair-rows (using matchGroups for pairing logic)
+  matchGroups.forEach(group => {
+    for (let gi = 0; gi < group.length; gi++) {
+      const t = group[gi];
+      const tIdx = allTripsSorted.findIndex(x => (x.RowID || x._row) === (t.RowID || t._row));
+      if (tIdx === -1 || seenPaired.has(tIdx)) continue;
+      const partnerNames = (t.matchWith || '').split(', ').filter(Boolean);
+      const partnerIdxs = partnerNames.map(name =>
+        allTripsSorted.findIndex((p, pi) => !seenPaired.has(pi) && pi !== tIdx && p.Name === name)
+      ).filter(pi => pi !== -1);
+      if (partnerIdxs.length > 0) {
+        seenPaired.add(tIdx);
+        partnerIdxs.forEach(pi => seenPaired.add(pi));
+        partnerIdxs.forEach(pi => {
+          boardHTML += `<div class="pair-row">
+            ${tripCards[tIdx]}
+            <div class="pair-arrow"><div class="pair-arrow-sym">&#8596;</div><div class="pair-arrow-lbl">Match</div></div>
+            ${tripCards[pi]}
+          </div>`;
+        });
+      }
+    }
   });
 
-  document.getElementById('board-list').innerHTML = allCards.map(c => c.html).join('');
+  // Second pass: render ALL trips as individual cards in date order (matched stay green)
+  allTripsSorted.forEach((t, i) => {
+    boardHTML += tripCards[i];
+  });
+
+  // Pickups always solo
+  pickupCards.forEach(p => { boardHTML += p.html; });
+
+  document.getElementById('board-list').innerHTML = boardHTML;
 }
 
 function renderPickups() {
@@ -1468,12 +1498,12 @@ function renderPickups() {
         </div>
         <div class="trip-details">
           ${p.Duration ? `<span>${p.Duration}</span>` : ''}
-          ${p.Dates ? `<span>${p.Dates}</span>` : ''}
+          ${p.Dates ? `<span>${p.Dates.split(',').map(d=>fmtDate(d.trim())).filter(Boolean).join(', ')}</span>` : ''}
         </div>
         ${p.Notes ? `<div class="trip-wants">${p.Notes}</div>` : ''}
-      </div>
-      <div class="card-actions">
-        <button class="btn-delete" onclick="deleteTrip('${rowId}','Pickups')">Delete</button>
+        <div class="card-actions">
+          <button class="btn-delete" onclick="deleteTrip('${rowId}','Pickups')">Delete</button>
+        </div>
       </div>
     </div>`;
   }).join('');
@@ -1491,13 +1521,67 @@ function updateStats() {
 // ── CALENDAR ──────────────────────────────────────────────────────────────
 let calSelectedDate = null;
 
+function contactUrl(raw) {
+  if (raw === null || raw === undefined) return '';
+  const t = String(raw).trim();
+  if (!t) return '';
+  // Block bare numeric strings that look like RowIDs (10+ digits, no other chars)
+  if (/^\d{10,}$/.test(t)) return '';
+  // Also block if it looks like a float/scientific notation of a timestamp
+  if (/^\d+(\.\d+)?(E\+\d+)?$/i.test(t) && t.length >= 10) return '';
+  const digits = t.replace(/[\s\-().]/g, '');
+  if (/^07\d{9}$/.test(digits)) return 'https://wa.me/44' + digits.slice(1);
+  if (/^\+44\d{10}$/.test(digits)) return 'https://wa.me/' + digits.replace('+','');
+  if (t.includes('@') && !t.startsWith('http')) return 'mailto:' + t;
+  // Facebook profile URL or m.me link → extract slug for app-aware opening
+  const normalized = t.startsWith('http') ? t : 'https://' + t;
+  try {
+    const url = new URL(normalized);
+    if (url.hostname.includes('facebook.com') || url.hostname === 'm.me') {
+      const slug = url.pathname.replace(/^\//, '').split('/')[0];
+      if (slug && slug !== 'messages') return 'fb-messenger:' + slug;
+    }
+  } catch(e) {}
+  return normalized;
+}
+
+// Opens a contact URL, using native Messenger app on mobile with m.me fallback
+function openContact(raw) {
+  const cu = contactUrl(raw);
+  if (!cu) return;
+  if (cu.startsWith('fb-messenger:')) {
+    const slug = cu.replace('fb-messenger:', '');
+    // Try native app URI — works on iOS & Android if Messenger is installed
+    const appUri = 'fb-messenger://user-thread/' + slug;
+    const webFallback = 'https://m.me/' + slug;
+    // Attempt to open app; if not installed the browser ignores the URI,
+    // so we set a short timer to fall back to the web URL.
+    const start = Date.now();
+    window.location.href = appUri;
+    setTimeout(function() {
+      // If app opened, the page will have gone to background and >500ms will have passed
+      if (Date.now() - start < 1500) {
+        window.open(webFallback, '_blank', 'noopener');
+      }
+    }, 600);
+  } else {
+    window.open(cu, '_blank', 'noopener');
+  }
+}
+
+function ukISO(date) {
+  // Always return YYYY-MM-DD in Europe/London time
+  const parts = date.toLocaleDateString('en-GB', { year:'numeric', month:'2-digit', day:'2-digit', timeZone:'Europe/London' }).split('/');
+  return `${parts[2]}-${parts[1]}-${parts[0]}`;
+}
+
 function renderCalendar() {
   const container = document.getElementById('cal-container');
   if (!container) return;
 
   const today = new Date();
   today.setHours(0,0,0,0);
-  const todayISO = today.toISOString().slice(0,10);
+  const todayISO = ukISO(today);
 
   // Build a map of ISO date → listings
   const dateMap = {}; // { 'YYYY-MM-DD': { trips: [], pickups: [] } }
@@ -1524,7 +1608,7 @@ function renderCalendar() {
       for (let i = 0; i < 42; i++) {
         const d = new Date(today);
         d.setDate(d.getDate() + i);
-        const iso = d.toISOString().slice(0,10);
+        const iso = ukISO(d);
         ensureDate(iso);
         if (!dateMap[iso].pickups.includes(p)) dateMap[iso].pickups.push(p);
       }
@@ -1569,7 +1653,7 @@ function renderCalendar() {
     const daysInMonth = new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0).getDate();
     for (let d = 1; d <= daysInMonth; d++) {
       const date = new Date(monthStart.getFullYear(), monthStart.getMonth(), d);
-      const iso = date.toISOString().slice(0,10);
+      const iso = ukISO(date);
       const isPast = date < today;
       const isToday = iso === todayISO;
       const data = dateMap[iso];
@@ -1621,32 +1705,59 @@ function calDayClick(iso) {
   renderCalendar();
 }
 
+function calTripCard(t) {
+  const isAlsoDrop = t.AlsoDrop === 'true' || t.AlsoDrop === true;
+  const badgeCls = isAlsoDrop ? 'badge-swapdrop' : `badge-${(t.Type||'swap').toLowerCase()}`;
+  const badgeLabel = isAlsoDrop ? 'Swap or Drop' : (t.Type||'Swap');
+  return `<div class="trip-card${t.matched ? ' matched' : ''}" style="margin-bottom:0;flex:1;min-width:0;">
+    <div class="avatar">${t.Name ? t.Name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase() : '??'}</div>
+    <div class="trip-main">
+      <div class="trip-top">
+        <span class="trip-name">${t.Name}</span>
+        <span class="badge ${badgeCls}">${badgeLabel}</span>
+        ${t.matched ? '<span class="badge badge-match">Match</span>' : ''}
+      </div>
+      <div class="trip-details">
+        ${t.Flight ? `<span><strong>${t.Flight}</strong></span>` : ''}
+        ${t.Duration ? `<span>${t.Duration}</span>` : ''}
+        ${t.Pax ? `<span>${t.Pax}</span>` : ''}
+      </div>
+      ${t.Type === 'Swap' && t.Wants ? `<div class="trip-wants">Wants: ${t.Wants}${t.WantsDates ? ' · ' + t.WantsDates.split(',').map(d=>fmtDate(d.trim())).filter(Boolean).join(' or ') : t.WantsAfter ? ' · later' : t.WantsBefore ? ' · earlier' : ''}</div>` : ''}
+      ${t.Notes ? `<div class="trip-wants">${t.Notes}</div>` : ''}
+      ${t.matched && t.Contact && contactUrl(t.Contact) ? `<button onclick="openContact(${JSON.stringify(t.Contact).split('"').join('&quot;')})" style="display:inline-block;margin-top:6px;padding:5px 12px;background:var(--green);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">💬 Direct message</button>` : ''}
+    </div>
+  </div>`;
+}
+
 function renderCalPopup(iso, data) {
   const anchor = document.getElementById('cal-popup-anchor');
   if (!anchor) return;
   const label = new Date(iso + 'T12:00:00').toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long' });
 
   let cards = '';
+  const seenCal = new Set();
+
   data.trips.forEach(t => {
-    const isAlsoDrop = t.AlsoDrop === 'true' || t.AlsoDrop === true;
-    const badgeCls = isAlsoDrop ? 'badge-swapdrop' : `badge-${t.Type.toLowerCase()}`;
-    const badgeLabel = isAlsoDrop ? 'Swap or Drop' : t.Type;
-    const matchNote = t.matched ? `<div class="match-note">🟢 ${t.matchNote}</div>` : '';
-    cards += `<div class="trip-card" style="margin-bottom:8px;">
-      <div class="avatar">${t.Name ? t.Name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase() : '??'}</div>
-      <div class="trip-main">
-        <div class="trip-top">
-          <span class="trip-name">${t.Name}</span>
-          <span class="badge ${badgeCls}">${badgeLabel}</span>
-          <span class="badge badge-flight">${t.Flight}</span>
-          ${t.matched ? '<span class="badge badge-match">Match</span>' : ''}
-        </div>
-        <div class="trip-details">${t.Duration ? `<span>${t.Duration}</span>` : ''}${t.Pax ? `<span>${t.Pax}</span>` : ''}</div>
-        ${t.Type === 'Swap' && t.Wants ? `<div class="trip-wants">Wants: ${t.Wants}${t.WantsDates ? ' · ' + t.WantsDates.split(',').map(d=>fmtDate(d.trim())).filter(Boolean).join(' or ') : t.WantsAfter ? ' · later' : t.WantsBefore ? ' · earlier' : ''}</div>` : ''}
-        ${t.Notes ? `<div class="trip-wants">${t.Notes}</div>` : ''}
-        ${matchNote}
-      </div>
-    </div>`;
+    const tid = t.RowID || t._row;
+    if (seenCal.has(tid)) return;
+    if (t.matched && t.matchWith) {
+      // Find ALL partners from allTrips (they may be on a different date)
+      const partnerNames = t.matchWith.split(', ');
+      const partners = partnerNames.map(name =>
+        allTrips.find(p => p.Name === name && (p.RowID || p._row) !== tid && !seenCal.has(p.RowID || p._row))
+      ).filter(Boolean);
+
+      if (partners.length > 0) {
+        seenCal.add(tid);
+        partners.forEach(partner => {
+          seenCal.add(partner.RowID || partner._row);
+          cards += `<div class="pair-row" style="margin-bottom:8px;">${calTripCard(t)}<div class="pair-arrow"><div class="pair-arrow-sym">&#8596;</div><div class="pair-arrow-lbl">Match</div></div>${calTripCard(partner)}</div>`;
+        });
+        return;
+      }
+    }
+    seenCal.add(tid);
+    cards += `<div style="margin-bottom:8px;">${calTripCard(t)}</div>`;
   });
 
   data.pickups.forEach(p => {
@@ -1657,9 +1768,11 @@ function renderCalPopup(iso, data) {
           <span class="trip-name">${p.Name}</span>
           <span class="badge badge-pickup">Wants to pick up</span>
           ${p.Flight ? `<span class="badge badge-flight">${p.Flight}</span>` : ''}
+          ${p.matched ? '<span class="badge badge-match">Match</span>' : ''}
         </div>
-        <div class="trip-details">${p.Duration ? `<span>${p.Duration}</span>` : ''}${p.Dates ? `<span>${p.Dates}</span>` : ''}</div>
+        <div class="trip-details">${p.Duration ? `<span>${p.Duration}</span>` : ''}${p.Dates ? `<span>${p.Dates.split(',').map(d=>fmtDate(d.trim())).filter(Boolean).join(', ')}</span>` : ''}</div>
         ${p.Notes ? `<div class="trip-wants">${p.Notes}</div>` : ''}
+        ${p.matched && p.Contact && contactUrl(p.Contact) ? `<button onclick="openContact(${JSON.stringify(p.Contact).split('"').join('&quot;')})" style="display:inline-block;margin-top:6px;padding:5px 12px;background:var(--green);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">💬 Direct message</button>` : ''}
       </div>
     </div>`;
   });
@@ -1680,12 +1793,45 @@ function startEdit(trip) {
   editingTrip = trip;
   // Populate form
   document.getElementById('f-name').value = trip.Name || '';
-  document.getElementById('f-flight').value = trip.Flight || '';
+  document.getElementById('f-contact').value = trip.Contact || '';
+
+  // Flight
+  const flightSel = document.getElementById('f-flight');
+  if (['QF2','QF10','SBY','EPs','Training'].includes(trip.Flight)) {
+    flightSel.value = trip.Flight;
+    document.getElementById('f-flight-other').style.display = 'none';
+  } else if (trip.Flight) {
+    flightSel.value = 'Other';
+    document.getElementById('f-flight-other').style.display = 'block';
+    document.getElementById('f-flight-other').value = trip.Flight;
+  }
+
   document.getElementById('f-date').value = trip.Date ? trip.Date.slice(0,10) : '';
-  document.getElementById('f-duration').value = trip.Duration || '';
+
+  // Duration — stored as "4 day", extract number
+  const durN = parseInt(trip.Duration);
+  document.getElementById('f-duration').value = isNaN(durN) ? '' : durN;
+
   document.getElementById('f-pax').value = trip.Pax || '';
-  document.getElementById('f-wants').value = trip.Wants || '';
+
+  // Wants
+  const wantsSel = document.getElementById('f-wants');
+  if (['QF2','QF10','QF2 or QF10'].includes(trip.Wants)) {
+    wantsSel.value = trip.Wants || '';
+    document.getElementById('f-wants-other').style.display = 'none';
+  } else if (trip.Wants) {
+    wantsSel.value = 'Other';
+    document.getElementById('f-wants-other').style.display = 'block';
+    document.getElementById('f-wants-other').value = trip.Wants;
+  }
+
+  // Wants dates — restore into picker
+  wdSelectedDates = new Set();
+  if (trip.WantsDates) {
+    trip.WantsDates.split(',').map(d => d.trim()).filter(d => /^\d{4}-\d{2}-\d{2}/.test(d)).forEach(d => wdSelectedDates.add(d));
+  }
   document.getElementById('f-wants-date').value = trip.WantsDates || '';
+
   document.getElementById('f-notes').value = trip.Notes || '';
   tripType = trip.Type || 'Drop';
   document.querySelectorAll('.toggle-btn').forEach((b,i) => b.classList.toggle('active', i === (tripType === 'Swap' ? 1 : 0)));
@@ -1693,6 +1839,7 @@ function startEdit(trip) {
   document.getElementById('wants-date-group').style.display = tripType === 'Swap' ? 'flex' : 'none';
   document.getElementById('also-drop-group').style.display = tripType === 'Swap' ? 'flex' : 'none';
   document.getElementById('f-also-drop').checked = trip.AlsoDrop === 'true' || trip.AlsoDrop === true;
+  if (tripType === 'Swap') { wdInit(); if (wdSelectedDates.size) wdRender(); }
   document.getElementById('form-title').textContent = 'Edit your listing';
   document.getElementById('submit-btn').textContent = 'Save changes';
   document.getElementById('cancel-edit-btn').style.display = 'block';
@@ -1711,16 +1858,23 @@ function cancelEdit() {
 
 function resetForm() {
   document.getElementById('f-name').value = '';
+  document.getElementById('f-contact').value = '';
   document.getElementById('f-flight').value = '';
+  document.getElementById('f-flight-other').value = '';
+  document.getElementById('f-flight-other').style.display = 'none';
   document.getElementById('f-date').value = '';
   document.getElementById('f-duration').value = '';
   document.getElementById('f-pax').value = '';
   document.getElementById('f-wants').value = '';
+  document.getElementById('f-wants-other').value = '';
+  document.getElementById('f-wants-other').style.display = 'none';
   document.getElementById('f-wants-date').value = '';
   document.getElementById('f-wants-after').value = '';
   document.getElementById('f-wants-before').value = '';
   document.getElementById('f-al-dates').value = '';
   document.getElementById('f-notes').value = '';
+  wdSelectedDates = new Set();
+  wdYear = null; wdMonth = null;
   tripType = 'Drop';
   document.querySelectorAll('.toggle-btn').forEach((b,i) => b.classList.toggle('active', i === 0));
   document.getElementById('f-also-drop').checked = false;
@@ -1731,6 +1885,15 @@ function resetForm() {
   document.getElementById('submit-btn').textContent = 'Post trip';
   document.getElementById('cancel-edit-btn').style.display = 'none';
   editingTrip = null;
+  contactInit();
+  // If there's a scan queue running, load the next trip
+  if (window._scanQueue && window._scanQueue.length && window._scanQueuePos < window._scanQueue.length) {
+    loadNextScanTrip();
+  } else {
+    // Hide queue banner if queue is done
+    const banner = document.getElementById('scan-queue-banner');
+    if (banner) banner.style.display = 'none';
+  }
 }
 
 async function deleteTrip(rowId, sheet) {
@@ -1746,13 +1909,12 @@ async function deleteTrip(rowId, sheet) {
 // ── SUBMIT ────────────────────────────────────────────────────────────────
 async function submitTrip() {
   const name = document.getElementById('f-name').value.trim();
-  const flight = document.getElementById('f-flight').value;
+  const flight = getFlightValue();
   const date = document.getElementById('f-date').value;
-  const duration = document.getElementById('f-duration').value;
+  const duration = getDurationValue();
 
   if (!name || !flight || !date) { showToast('Please fill in name, flight and date'); return; }
-  if (flight === 'QF10' && !duration) { showToast('Please select 5 day or 6 day for QF10'); return; }
-  if (!SCRIPT_URL) { showToast('Setup required first — see Setup tab'); return; }
+  if (!SCRIPT_URL) { showToast('Setup required — add your Google Script URL in the Setup tab'); return; }
 
   const payload = {
     action: editingTrip ? 'update' : 'add',
@@ -1760,44 +1922,34 @@ async function submitTrip() {
     rowId: editingTrip ? (editingTrip.RowID || editingTrip._row) : undefined,
     Name: name, Type: tripType, Flight: flight, Date: date, Duration: duration,
     Pax: document.getElementById('f-pax').value,
-    Wants: document.getElementById('f-wants').value.trim(),
+    Wants: getWantsValue(),
     WantsDates: document.getElementById('f-wants-date').value.trim(),
     WantsAfter: document.getElementById('f-wants-after').value.trim(),
     WantsBefore: document.getElementById('f-wants-before').value.trim(),
     AlsoDrop: tripType === 'Swap' && document.getElementById('f-also-drop').checked ? 'true' : '',
     ALDates: document.getElementById('f-al-dates').value.trim(),
-    Notes: document.getElementById('f-notes').value.trim()
+    Notes: document.getElementById('f-notes').value.trim(),
+    Contact: document.getElementById('f-contact').value.trim()
   };
 
   const btn = document.getElementById('submit-btn');
   btn.disabled = true;
   btn.textContent = editingTrip ? 'Saving...' : 'Posting...';
 
-  try {
-    await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+  // Auto-save name for My Listings
+  if (name) localStorage.setItem(MINE_NAME_KEY, name);
 
-    // If we're working through a multi-trip queue, advance it
-    if (fbTripQueue.length > 0) {
-      fbTripQueue.shift();
-      showToast(`Trip posted! ${fbTripQueue.length > 0 ? fbTripQueue.length + ' more to go' : 'All trips posted!'}`);
-      resetForm();
-      await loadData();
-      if (fbTripQueue.length > 0) {
-        loadNextQueuedTrip();
-      } else {
-        document.getElementById('fb-queue-banner').style.display = 'none';
-        showPage('board', document.querySelectorAll('.nav-tab')[0]);
-      }
-    } else {
-      showToast(editingTrip ? 'Listing updated!' : 'Trip posted!');
-      resetForm();
-      await loadData();
-      showPage('board', document.querySelectorAll('.nav-tab')[0]);
-    }
-  } catch(e) { showToast('Error — check Setup tab'); }
-
+  // Fire POST — don't await, Apps Script is slow and waiting causes UI hang
+  fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) }).catch(() => {});
+  showToast(editingTrip ? 'Listing updated!' : 'Trip posted!');
   btn.disabled = false;
   btn.textContent = editingTrip ? 'Save changes' : 'Post trip';
+  resetForm();
+  // Short delay so the sheet has a moment to write before we re-fetch
+  setTimeout(() => {
+    showPage('board', document.querySelectorAll('.nav-tab')[0]);
+    loadData();
+  }, 1500);
 }
 
 async function submitPickup() {
@@ -1811,20 +1963,20 @@ async function submitPickup() {
     Name: name, Flight: flight,
     Duration: document.getElementById('p-duration').value,
     Dates: document.getElementById('p-dates').value.trim(),
-    Notes: document.getElementById('p-notes').value.trim()
+    Notes: document.getElementById('p-notes').value.trim(),
+    Contact: document.getElementById('p-contact').value.trim()
   };
 
-  try {
-    await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
-    showToast('Pickup request posted!');
-    document.getElementById('p-name').value = '';
-    document.getElementById('p-flight').value = '';
-    document.getElementById('p-duration').value = '';
-    document.getElementById('p-dates').value = '';
-    document.getElementById('p-notes').value = '';
-    await loadData();
-    renderPickups();
-  } catch(e) { showToast('Error — check Setup tab'); }
+  fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) }).catch(() => {});
+  showToast('Pickup request posted!');
+  document.getElementById('p-name').value = '';
+  document.getElementById('p-flight').value = '';
+  document.getElementById('p-duration').value = '';
+  document.getElementById('p-dates').value = '';
+  document.getElementById('p-notes').value = '';
+  pdSelectedDates = new Set();
+  pdYear = null; pdMonth = null;
+  setTimeout(() => { loadData(); renderPickups(); }, 1500);
 }
 
 // ── SETUP ─────────────────────────────────────────────────────────────────
@@ -1840,8 +1992,6 @@ function copyScript() {
   navigator.clipboard.writeText(APPS_SCRIPT).then(() => showToast('Script copied!'));
 }
 
-function closeModal() { document.getElementById('edit-modal').classList.remove('open'); }
-
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -1850,6 +2000,8 @@ function showToast(msg) {
 }
 
 loadData();
+contactInit();
+pickupContactInit();
 
 // ── ROSTER SCAN ───────────────────────────────────────────────────────────
 
@@ -1981,6 +2133,25 @@ function parseRosterText(text) {
     return dates;
   }
 
+  // Normalise OCR-mangled trip codes:
+  // O→0, L→1 (when in digit positions), I→1, common misreads
+  function normaliseCode(raw) {
+    // First char must be S or P — if OCR gave us a look-alike, fix it
+    let s = raw.toUpperCase();
+    // Replace common full-word OCR substitutions in the numeric suffix
+    // e.g. SILOL1 → SIL011, SILL08 → SIL108
+    // Strategy: keep first 3 alpha chars as the route prefix, normalise rest
+    if (s.length >= 4) {
+      const prefix = s.slice(0, 3).replace(/[0-9]/g, ''); // letters only for prefix
+      const suffix = s.slice(3)
+        .replace(/O/g, '0')
+        .replace(/I/g, '1')
+        .replace(/L/g, '1');
+      s = prefix + suffix;
+    }
+    return s;
+  }
+
   // Pull every relevant trip code from a line, with its character position
   function extractCodesFromLine(line) {
     const codes = [];
@@ -1989,7 +2160,7 @@ function parseRosterText(text) {
     const reL = /\b([SP][A-Z0-9]{5,})\b/g;
     let m;
     while ((m = reL.exec(upper)) !== null) {
-      codes.push({ code: m[1], pos: m.index });
+      codes.push({ code: normaliseCode(m[1]), pos: m.index });
     }
     // Short codes: exactly 3 letters (SBY, or short S__ / P__)
     const reS = /\b([A-Z]{3})\b/g;
@@ -1997,7 +2168,6 @@ function parseRosterText(text) {
       const t = m[1];
       if (t === 'ESA') continue; // ignore
       if (t === 'SBY' || t.startsWith('S') || t.startsWith('P')) {
-        // Don't double-count if already captured by long-code regex
         const alreadyCaptured = codes.some(c => Math.abs(c.pos - m.index) < 3);
         if (!alreadyCaptured) codes.push({ code: t, pos: m.index });
       }
@@ -2013,6 +2183,10 @@ function parseRosterText(text) {
     if (code.startsWith('P')) return 'QF10';
     return null;
   }
+
+  // Track which dates are rest days (X or A in Duty column) — these act as
+  // hard boundaries between trips even if the same code appears either side
+  const restDates = new Set();
 
   // ── Step 1: Extract all (date, code) pairs from the OCR text ─────────────
   const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
@@ -2030,6 +2204,12 @@ function parseRosterText(text) {
     // Check for AL (Annual Leave) — record those dates
     if (/\bAL\b/.test(upperLine) && (!codes.length || codes.every(c => !classifyCode(c.code)))) {
       dates.forEach(d => alDates.push(d.iso));
+    }
+
+    // X or A in the Duty column = day off at home = rest day boundary between trips
+    // Detect lines where the duty code is just X or A (single letter after date)
+    if (/\b[XA]\b/.test(upperLine) && (!codes.length || codes.every(c => !classifyCode(c.code)))) {
+      dates.forEach(d => restDates.add(d.iso));
     }
 
     // Check if this line has ESA but no valid trip codes — record the date(s)
@@ -2056,7 +2236,7 @@ function parseRosterText(text) {
     }
   }
 
-  if (!pairs.length) return [];
+  if (!pairs.length) return { trips: [], alDates };
 
   // ── Step 1b: Bridge ESA dates into surrounding runs ───────────────────────
   // For each ESA date, check if it sits between two days of the same trip code.
@@ -2065,8 +2245,8 @@ function parseRosterText(text) {
     for (const esaIso of esaDates) {
       const esaMs = new Date(esaIso).getTime();
       const dayMs = 86400000;
-      const prev = new Date(esaMs - dayMs).toISOString().slice(0, 10);
-      const next = new Date(esaMs + dayMs).toISOString().slice(0, 10);
+      const prev = ukISO(new Date(esaMs - dayMs));
+      const next = ukISO(new Date(esaMs + dayMs));
       const prevPair = pairs.find(p => p.iso === prev);
       const nextPair = pairs.find(p => p.iso === next);
       if (prevPair && nextPair && prevPair.code === nextPair.code) {
@@ -2092,17 +2272,21 @@ function parseRosterText(text) {
 
   for (const [code, info] of Object.entries(byCode)) {
     info.dates.sort();
-    // Find consecutive runs (gaps of exactly 1 day)
+    // Find consecutive runs (gaps of exactly 1 day, no rest day in between)
     let runStart = 0;
     for (let i = 1; i <= info.dates.length; i++) {
       const isConsec = i < info.dates.length &&
-        (new Date(info.dates[i]) - new Date(info.dates[i-1])) === 86400000;
+        (new Date(info.dates[i]) - new Date(info.dates[i-1])) === 86400000 &&
+        !restDates.has(info.dates[i]); // X/A day breaks the run
       if (!isConsec) {
         // End of a run
         const runDates = info.dates.slice(runStart, i);
         const startDate = runDates[0];
         const observedDays = runDates.length;
-        const cutOff = i === info.dates.length && observedDays > 0; // ran to end of roster
+        // cutOff: only flag if the run ends at the very last date in the entire pairs array
+        // AND we haven't seen the expected number of days
+        const lastPairDate = pairs[pairs.length - 1]?.iso;
+        const runEndsAtRosterEdge = runDates[runDates.length - 1] === lastPairDate;
 
         let duration = '';
         let durationConfident = true;
@@ -2110,13 +2294,12 @@ function parseRosterText(text) {
         if (info.type === 'SBY') {
           duration = '3 day';
         } else if (info.type === 'QF2') {
-          // QF2 is 4 day; if we saw fewer days it may be cut off at roster edge
           duration = '4 day';
-          if (observedDays < 4 && cutOff) durationConfident = false;
+          // Only flag cut-off if we saw fewer than 4 days AND we're at the roster edge
+          if (observedDays < 4 && runEndsAtRosterEdge) durationConfident = false;
         } else if (info.type === 'QF10') {
-          // Count days seen → duration; if cut off, flag it
           duration = observedDays + ' day';
-          if (cutOff) durationConfident = false;
+          if (runEndsAtRosterEdge && observedDays < 6) durationConfident = false;
         }
 
         trips.push({
@@ -2125,7 +2308,7 @@ function parseRosterText(text) {
           duration,
           durationConfident,
           observedDays,
-          cutOff,
+          cutOff: !durationConfident,
           isSBY: info.type === 'SBY',
           code,
         });
@@ -2146,6 +2329,9 @@ function renderScanResults(trips) {
   card.style.display = 'block';
   card.style.opacity = '1';
 
+  // Track which trips are selected (for multi-select)
+  const selected = new Set();
+
   function tripLabel(t) {
     if (t.isSBY) {
       return `<strong>Standby (SBY)</strong> &nbsp;·&nbsp; ${t.date ? fmtDate(t.date) : 'Date unknown'} &nbsp;·&nbsp; 3 day`;
@@ -2163,43 +2349,343 @@ function renderScanResults(trips) {
   function tripSub(t) {
     if (t.isSBY) return `Code: ${t.code} · Can only swap with another Standby`;
     if (!t.durationConfident) return `Code: ${t.code} · Saw ${t.observedDays} day(s) — trip may continue beyond this roster`;
-    return `Code: ${t.code} · ${t.observedDays} day(s) counted`;
+    return `Code: ${t.code} · ${t.observedDays} day(s)`;
   }
 
-  list.innerHTML = trips.map((t, i) => `
-    <div class="scan-trip-option" onclick="useScanTrip(${i})">
-      <div style="flex:1">
-        <div class="scan-trip-label">${tripLabel(t)}</div>
-        <div class="scan-trip-sub">${tripSub(t)}</div>
+  function render() {
+    list.innerHTML = trips.map((t, i) => {
+      const isSel = selected.has(i);
+      return `
+        <div class="scan-trip-option${isSel ? ' selected' : ''}" onclick="toggleScanTrip(${i})" style="${isSel ? 'border-color:var(--green);background:#ECFDF5;' : ''}">
+          <div style="width:20px;height:20px;border-radius:50%;border:2px solid ${isSel ? 'var(--green)' : 'var(--border)'};background:${isSel ? 'var(--green)' : '#fff'};flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+            ${isSel ? '<svg width="10" height="10" fill="none" stroke="#fff" stroke-width="3" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>' : ''}
+          </div>
+          <div style="flex:1">
+            <div class="scan-trip-label">${tripLabel(t)}</div>
+            <div class="scan-trip-sub">${tripSub(t)}</div>
+          </div>
+          <button class="btn-use-trip" onclick="useScanTrip(${i}); event.stopPropagation();">Use</button>
+        </div>`;
+    }).join('');
+
+    // Show multi-post controls only when 2+ are selected
+    const multi = document.getElementById('scan-multi-controls');
+    if (selected.size >= 2) {
+      multi.style.display = 'block';
+      document.getElementById('scan-selected-count').textContent = selected.size;
+    } else {
+      multi.style.display = 'none';
+    }
+  }
+
+  // Inject multi-post controls below the list (once)
+  if (!document.getElementById('scan-multi-controls')) {
+    const ctrl = document.createElement('div');
+    ctrl.id = 'scan-multi-controls';
+    ctrl.style.cssText = 'display:none;margin-top:12px;padding:12px;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:var(--radius-sm);';
+    ctrl.innerHTML = `
+      <div style="font-size:12px;font-weight:600;color:#065F46;margin-bottom:8px;">
+        📋 Post <span id="scan-selected-count">0</span> trips together
       </div>
-      <button class="btn-use-trip" onclick="useScanTrip(${i}); event.stopPropagation();">Use</button>
-    </div>`).join('');
+      <div style="font-size:12px;color:#374151;margin-bottom:6px;">Add a note (optional — e.g. "happy to help with back-to-backs")</div>
+      <textarea id="scan-multi-notes" placeholder="e.g. Looking to move these back-to-back trips — happy to consider offers..." style="width:100%;font-family:var(--sans);font-size:13px;padding:8px 10px;border:1px solid #BBF7D0;border-radius:6px;resize:vertical;min-height:60px;margin-bottom:8px;"></textarea>
+      <button class="btn-use-trip" style="width:100%;padding:9px;" onclick="postMultipleScannedTrips()">Post selected trips one by one ›</button>
+    `;
+    list.parentNode.insertBefore(ctrl, list.nextSibling);
+  }
+
+  window.toggleScanTrip = function(i) {
+    if (selected.has(i)) selected.delete(i);
+    else selected.add(i);
+    render();
+  };
 
   window.useScanTrip = function(i) {
     const t = trips[i];
-    // Store any AL dates found on this roster scan
     document.getElementById('f-al-dates').value = (window._scannedAL || []).join(',');
-
-    if (t.isSBY) {
-      document.getElementById('f-flight').value = '';
-      document.getElementById('f-date').value = t.date || '';
-      document.getElementById('f-duration').value = '3 day';
-      document.getElementById('f-notes').value = (document.getElementById('f-notes').value ? document.getElementById('f-notes').value + '\n' : '') + 'Standby (SBY) — can only swap with another Standby';
-      showToast('Standby filled in — select QF2 or QF10 manually if needed');
-    } else {
-      document.getElementById('f-flight').value = t.flight;
-      document.getElementById('f-date').value = t.date || '';
-      document.getElementById('f-duration').value = t.duration || '';
-      if (!t.durationConfident) {
-        showToast('Trip filled in — please check duration, may be cut off');
-      } else {
-        showToast('Trip details filled in — check and confirm below');
-      }
-    }
-
+    fillScanTrip(t);
+    card.style.opacity = '0.5';
     document.getElementById('f-name').scrollIntoView({ behavior: 'smooth', block: 'center' });
     document.getElementById('f-name').focus();
-    card.style.opacity = '0.5';
+    if (!t.durationConfident) {
+      showToast('Trip filled in — please check duration, may be cut off');
+    } else {
+      showToast('Trip details filled in — check and confirm below');
+    }
+  };
+
+  window.postMultipleScannedTrips = function() {
+    const indices = [...selected].sort((a, b) => a - b);
+    if (!indices.length) return;
+    const sharedNotes = document.getElementById('scan-multi-notes').value.trim();
+    // Store the queue globally and start posting the first
+    window._scanQueue = indices.map(i => ({ ...trips[i], sharedNotes }));
+    window._scanQueuePos = 0;
+    loadNextScanTrip();
+  };
+
+  render();
+}
+
+function fillScanTrip(t, sharedNotes) {
+  document.getElementById('f-al-dates').value = (window._scannedAL || []).join(',');
+  if (t.isSBY) {
+    document.getElementById('f-flight').value = 'SBY';
+    handleFlightChange('SBY');
+    document.getElementById('f-date').value = t.date || '';
+    document.getElementById('f-duration').value = '3';
+  } else {
+    document.getElementById('f-flight').value = t.flight;
+    handleFlightChange(t.flight);
+    document.getElementById('f-date').value = t.date || '';
+    document.getElementById('f-duration').value = parseInt(t.duration) || '';
+  }
+  if (sharedNotes) document.getElementById('f-notes').value = sharedNotes;
+}
+
+function loadNextScanTrip() {
+  const queue = window._scanQueue || [];
+  const pos = window._scanQueuePos || 0;
+  if (pos >= queue.length) {
+    showToast('All trips posted!');
+    window._scanQueue = [];
+    return;
+  }
+  const t = queue[pos];
+  fillScanTrip(t, t.sharedNotes);
+  const remaining = queue.length - pos;
+  showToast(`Filling trip ${pos + 1} of ${queue.length} — post it, then next will load`);
+  // After submit, increment and load next — hook into resetForm
+  window._scanQueuePos = pos + 1;
+  document.getElementById('f-name').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  document.getElementById('f-name').focus();
+  // Show a banner so crew know more are queued
+  let banner = document.getElementById('scan-queue-banner');
+  if (!banner) {
+    banner = document.createElement('div');
+    banner.id = 'scan-queue-banner';
+    banner.style.cssText = 'background:var(--navy);color:#fff;border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:12px;font-size:13px;font-weight:500;';
+    document.getElementById('page-submit').insertBefore(banner, document.querySelector('#page-submit .card'));
+  }
+  banner.style.display = 'block';
+  banner.textContent = `📋 Trip ${pos + 1} of ${queue.length} — fill in below and post, then trip ${pos + 2 <= queue.length ? pos + 2 : 'done'} will load automatically.`;
+  if (pos + 1 >= queue.length) banner.textContent = `📋 Last trip (${queue.length} of ${queue.length}) — fill in below and post.`;
+}
+
+
+// ── PICKUP CONTACT ────────────────────────────────────────────────────────
+
+function pickupContactInit() {
+  const saved = localStorage.getItem(PICKUP_CONTACT_KEY);
+  const banner  = document.getElementById('p-saved-contact-banner');
+  const wrap    = document.getElementById('p-contact-input-wrap');
+  const cancelBtn = document.getElementById('p-contact-cancel-btn');
+  if (!banner || !wrap) return;
+  if (saved) {
+    document.getElementById('p-saved-contact-display').textContent = saved;
+    banner.style.display = 'flex';
+    wrap.style.display = 'none';
+    document.getElementById('p-contact').value = saved;
+  } else {
+    banner.style.display = 'none';
+    wrap.style.display = 'block';
+    if (cancelBtn) cancelBtn.style.display = 'none';
+  }
+}
+
+function pickupContactSave() {
+  const val = document.getElementById('p-contact').value.trim();
+  if (!val) { showToast('Enter your contact details first'); return; }
+  localStorage.setItem(PICKUP_CONTACT_KEY, val);
+  document.getElementById('p-saved-contact-display').textContent = val;
+  document.getElementById('p-saved-contact-banner').style.display = 'flex';
+  document.getElementById('p-contact-input-wrap').style.display = 'none';
+  showToast('Contact saved');
+}
+
+function pickupContactStartEdit() {
+  const saved = localStorage.getItem(PICKUP_CONTACT_KEY) || '';
+  document.getElementById('p-contact').value = saved;
+  document.getElementById('p-saved-contact-banner').style.display = 'none';
+  document.getElementById('p-contact-input-wrap').style.display = 'block';
+  const cancelBtn = document.getElementById('p-contact-cancel-btn');
+  if (cancelBtn) cancelBtn.style.display = 'inline-block';
+  document.getElementById('p-contact').focus();
+}
+
+function pickupContactCancelEdit() {
+  const saved = localStorage.getItem(PICKUP_CONTACT_KEY);
+  if (saved) {
+    document.getElementById('p-saved-contact-banner').style.display = 'flex';
+    document.getElementById('p-contact-input-wrap').style.display = 'none';
+  }
+}
+
+// ── MY LISTINGS ───────────────────────────────────────────────────────────
+
+function mineInit() {
+  const saved = localStorage.getItem(MINE_NAME_KEY);
+  const prompt = document.getElementById('mine-name-prompt');
+  const header = document.getElementById('mine-header');
+  if (saved) {
+    document.getElementById('mine-name-input').value = saved;
+    document.getElementById('mine-name-display').textContent = saved;
+    prompt.style.display = 'none';
+    header.style.display = 'block';
+    // Re-render in case data already loaded
+    if (allTrips.length || allPickups.length) renderMyListings();
+  } else {
+    prompt.style.display = 'block';
+    header.style.display = 'none';
+  }
+}
+
+function mineNameSave() {
+  const val = document.getElementById('mine-name-input').value.trim();
+  if (!val) { showToast('Enter your name first'); return; }
+  localStorage.setItem(MINE_NAME_KEY, val);
+  document.getElementById('mine-name-display').textContent = val;
+  document.getElementById('mine-name-prompt').style.display = 'none';
+  document.getElementById('mine-header').style.display = 'block';
+  renderMyListings();
+}
+
+function mineChangeName() {
+  localStorage.removeItem(MINE_NAME_KEY);
+  document.getElementById('mine-name-input').value = '';
+  document.getElementById('mine-name-prompt').style.display = 'block';
+  document.getElementById('mine-header').style.display = 'none';
+  document.getElementById('mine-list').innerHTML = '<div class="empty">Enter your name above to see your listings.</div>';
+}
+
+function renderMyListings() {
+  const myName = localStorage.getItem(MINE_NAME_KEY);
+  const list = document.getElementById('mine-list');
+  if (!list) return;
+  if (!myName) { list.innerHTML = '<div class="empty">Enter your name above to see your listings.</div>'; return; }
+
+  const myTrips = allTrips.filter(t => (t.Name || '').trim().toLowerCase() === myName.trim().toLowerCase() && !t.expired);
+  const myPickups = allPickups.filter(p => ((p.Name || p.name || '')).trim().toLowerCase() === myName.trim().toLowerCase());
+
+  if (!myTrips.length && !myPickups.length) {
+    list.innerHTML = '<div class="empty">No listings found for ' + escapeHtml(myName) + '. Check your name matches exactly what you posted.</div>';
+    return;
+  }
+
+  let html = '';
+
+  if (myTrips.length) {
+    html += '<div style="font-size:12px;font-weight:600;color:var(--grey);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Your swap / drop listings</div>';
+    myTrips.forEach(t => {
+      const initials = t.Name ? t.Name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : '??';
+      const isAlsoDrop = t.AlsoDrop === 'true' || t.AlsoDrop === true;
+      const badgeCls = isAlsoDrop ? 'badge-swapdrop' : (t.Type||'swap').toLowerCase() === 'drop' ? 'badge-drop' : 'badge-swap';
+      const badgeLabel = isAlsoDrop ? 'Swap or Drop' : (t.Type || 'Swap');
+      const rowId = t.RowID || t._row;
+      html += `<div class="trip-card${t.matched ? ' matched' : ''}${t.expiring ? ' expiring' : ''}">
+        <div class="avatar">${initials}</div>
+        <div class="trip-main">
+          <div class="trip-top">
+            <span class="trip-name">${t.Name}</span>
+            <span class="badge ${badgeCls}">${badgeLabel}</span>
+            ${t.matched ? '<span class="badge badge-match">Match found</span>' : ''}
+            ${t.expiring ? '<span class="badge badge-expiring">Expiring soon</span>' : ''}
+          </div>
+          <div class="trip-details">
+            ${t.Flight ? `<span><strong>${t.Flight}</strong></span>` : ''}
+            ${t.Date ? `<span>${fmtDate(t.Date)}</span>` : ''}
+            ${t.Duration ? `<span>${t.Duration}</span>` : ''}
+            ${t.Pax ? `<span>${t.Pax}</span>` : ''}
+          </div>
+          ${t.Type === 'Swap' && t.Wants ? `<div class="trip-wants">Wants: ${t.Wants}${t.WantsDates ? ' · ' + t.WantsDates.split(',').map(d => fmtDate(d.trim())).filter(Boolean).join(' or ') : ''}</div>` : ''}
+          ${t.Notes ? `<div class="trip-wants">${t.Notes}</div>` : ''}
+          ${t.matched && t.matchNote ? `<div class="match-note">${t.matchNote.split(' · Also: ').map(n => '🟢 ' + n).join('<br>')}</div>` : ''}
+          ${(() => {
+            if (t.matched && t.matchWith) {
+              const partnerName = t.matchWith.split(', ')[0];
+              const partner = allTrips.find(x => x.Name === partnerName);
+              const cu = partner && partner.Contact ? contactUrl(partner.Contact) : '';
+              return cu
+                ? `<button onclick="openContact(${JSON.stringify(partner.Contact).split('"').join('&quot;')})" style="display:inline-block;margin-top:6px;padding:5px 12px;background:var(--green);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">💬 Contact your match</button>`
+                : `<button onclick="showToast('Your match hasn\\'t added contact info')" style="display:inline-block;margin-top:6px;padding:5px 12px;background:var(--border);color:var(--grey);border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">💬 Contact your match</button>`;
+            }
+            return '';
+          })()}
+          <div class="card-actions">
+            <button class="btn-edit" onclick="startEdit(${JSON.stringify(t).split('"').join('&quot;')})">Edit</button>
+            <button class="btn-delete" onclick="deleteTrip('${rowId}','Swaps')">Delete</button>
+          </div>
+        </div>
+      </div>`;
+    });
+  }
+
+  if (myPickups.length) {
+    html += '<div style="font-size:12px;font-weight:600;color:var(--grey);text-transform:uppercase;letter-spacing:.05em;margin:12px 0 8px;">Your pickup requests</div>';
+    myPickups.forEach(p => {
+      const initials = p.Name ? p.Name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : '??';
+      const rowId = p.RowID || p._row;
+      html += `<div class="trip-card pickup-card${p.matched ? ' matched' : ''}">
+        <div class="avatar" style="background:var(--purple-light);color:var(--purple)">${initials}</div>
+        <div class="trip-main">
+          <div class="trip-top">
+            <span class="trip-name">${p.Name}</span>
+            <span class="badge badge-pickup">Wants to pick up</span>
+            ${p.Flight ? `<span class="badge badge-flight">${p.Flight}</span>` : ''}
+            ${p.matched ? '<span class="badge badge-match">Match found</span>' : ''}
+          </div>
+          <div class="trip-details">
+            ${p.Duration ? `<span>${p.Duration}</span>` : ''}
+            ${p.Dates ? `<span>${p.Dates.split(',').map(d => fmtDate(d.trim())).filter(Boolean).join(', ')}</span>` : ''}
+          </div>
+          ${p.Notes ? `<div class="trip-wants">${p.Notes}</div>` : ''}
+          ${p.matched && p.matchNote ? `<div class="match-note">${p.matchNote.split(' · Also: ').map(n => '🟢 ' + n).join('<br>')}</div>` : ''}
+          ${(() => {
+            if (p.matched) {
+              const matchedTrip = allTrips.find(x => x.matched && x.matchWith && x.matchWith.includes(p.Name || ''));
+              const cu = matchedTrip && matchedTrip.Contact ? contactUrl(matchedTrip.Contact) : '';
+              return cu
+                ? `<button onclick="openContact(${JSON.stringify(matchedTrip.Contact).split('"').join('&quot;')})" style="display:inline-block;margin-top:6px;padding:5px 12px;background:var(--green);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">💬 Contact your match</button>`
+                : `<button onclick="showToast('Your match hasn\\'t added contact info')" style="display:inline-block;margin-top:6px;padding:5px 12px;background:var(--border);color:var(--grey);border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">💬 Contact your match</button>`;
+            }
+            return '';
+          })()}
+          <div class="card-actions">
+            <button class="btn-delete" onclick="deleteTrip('${rowId}','Pickups')">Delete</button>
+          </div>
+        </div>
+      </div>`;
+    });
+  }
+
+  list.innerHTML = html;
+}
+
+// ── QR CODE (Setup tab) ───────────────────────────────────────────────────
+function generateSetupQR() {
+  // Build a clean virgin URL — just the origin + path, no query params, no hash,
+  // so the QR never embeds anyone's personal localStorage data (that stays local anyway,
+  // but this keeps the URL clean for sharing).
+  const url = window.location.origin + window.location.pathname;
+  const qrContainer = document.getElementById('qr-container');
+  if (!qrContainer) return;
+  qrContainer.innerHTML = '';
+  // Use the QRCode.js CDN library loaded at bottom of file
+  if (typeof QRCode === 'undefined') {
+    qrContainer.innerHTML = '<div style="font-size:12px;color:var(--red);">QR library not loaded — check your connection.</div>';
+    return;
+  }
+  new QRCode(qrContainer, {
+    text: url,
+    width: 160,
+    height: 160,
+    colorDark: '#0B1F3A',
+    colorLight: '#FFFFFF',
+    correctLevel: QRCode.CorrectLevel.M
+  });
+  document.getElementById('qr-url-display').textContent = url;
+  document.getElementById('qr-copy-btn').onclick = function() {
+    navigator.clipboard.writeText(url).then(() => showToast('URL copied!'));
   };
 }
 
@@ -2207,6 +2693,7 @@ function escapeHtml(str) {
   return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.0.4/tesseract.min.js"></script>
 </body>
 </html>
