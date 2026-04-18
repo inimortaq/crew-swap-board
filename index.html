@@ -987,7 +987,7 @@ async function autoCleanup(swaps, pickups) {
 
     if (shouldDelete) {
       deletePromises.push(
-        fetch(SCRIPT_URL, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ action: 'delete', rowId, sheet: 'Swaps' }) }).catch(() => {})
+        fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'delete', rowId, sheet: 'Swaps' }) }).catch(() => {})
       );
     }
   }
@@ -1002,7 +1002,7 @@ async function autoCleanup(swaps, pickups) {
       // Has specific dates — delete if all in the past
       if (dates.every(d => d < today)) {
         deletePromises.push(
-          fetch(SCRIPT_URL, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ action: 'delete', rowId, sheet: 'Pickups' }) }).catch(() => {})
+          fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'delete', rowId, sheet: 'Pickups' }) }).catch(() => {})
         );
       }
     } else {
@@ -1012,7 +1012,7 @@ async function autoCleanup(swaps, pickups) {
         const ageWeeks = (Date.now() - ts) / (86400000 * 7);
         if (ageWeeks >= 6) {
           deletePromises.push(
-            fetch(SCRIPT_URL, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ action: 'delete', rowId, sheet: 'Pickups' }) }).catch(() => {})
+            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'delete', rowId, sheet: 'Pickups' }) }).catch(() => {})
           );
         }
       }
@@ -1903,7 +1903,7 @@ async function deleteTrip(rowId, sheet) {
   if (!confirm('Are you sure you want to delete this listing?')) return;
   console.log('[delete] rowId:', rowId, 'sheet:', sheet);
   try {
-    await fetch(SCRIPT_URL, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ action: 'delete', rowId, sheet }) });
+    await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'delete', rowId, sheet }) });
     showToast('Listing deleted');
     await loadData();
   } catch(e) { showToast('Error deleting — try again'); }
@@ -1945,7 +1945,7 @@ async function submitTrip() {
 
   // Fire POST — don't await, Apps Script is slow and waiting causes UI hang
   console.log('[submitTrip] payload:', JSON.stringify(payload));
-  fetch(SCRIPT_URL, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) }).catch(() => {});
+  fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) }).catch(() => {});
   showToast(editingTrip ? 'Listing updated!' : 'Trip posted!');
   btn.disabled = false;
   btn.textContent = editingTrip ? 'Save changes' : 'Post trip';
@@ -1978,7 +1978,7 @@ async function submitPickup() {
   if (btn) { btn.disabled = true; btn.textContent = editingPickup ? 'Saving...' : 'Posting...'; }
 
   console.log('[submitPickup] payload:', JSON.stringify(payload));
-  fetch(SCRIPT_URL, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) }).catch(() => {});
+  fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) }).catch(() => {});
   showToast(editingPickup ? 'Pickup updated!' : 'Pickup request posted!');
 
   editingPickup = null;
