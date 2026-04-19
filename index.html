@@ -1053,7 +1053,10 @@ function processTrip(t) {
 // Overlap = any trip day falls on an AL day.
 function tripDays(dateStr, durationStr) {
   if (!dateStr) return [];
-  const start = new Date(dateStr);
+  // Convert to a safe plain YYYY-MM-DD first (handles ISO timestamps, bare dates, etc.)
+  const isoDate = toLocalISO(dateStr);
+  // Anchor to 10:00 so new Date() never rolls back a day due to UTC midnight
+  const start = new Date(isoDate + 'T10:00:00');
   if (isNaN(start)) return [];
   const n = parseInt(durationStr) || 1;
   const days = [];
@@ -1077,9 +1080,19 @@ function alClash(trip, alDatesStr) {
 // ── MATCH LOGIC ───────────────────────────────────────────────────────────
 function fmtDate(d) {
   if (!d) return '';
-  const dt = new Date(d);
-  if (isNaN(dt)) return d;
-  // Use local date to avoid UTC offset shifting the displayed date
+  const s = String(d).trim();
+  // Bare YYYY-MM-DD: append T12:00:00Z (noon UTC) so it's always the right date
+  // in any timezone, and never rolls back due to UTC midnight interpretation.
+  let dt;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+    dt = new Date(s + 'T12:00:00Z');
+  } else {
+    dt = new Date(s.endsWith('Z') || s.includes('+') ? s : s + 'Z');
+    // Nudge midnight/early UTC stamps (old Apps Script rows) forward so they
+    // land on the correct UK calendar day.
+    if (!isNaN(dt) && dt.getUTCHours() < 6) dt = new Date(dt.getTime() + 12 * 3600000);
+  }
+  if (isNaN(dt)) return s;
   return dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'Europe/London' });
 }
 
@@ -1094,10 +1107,21 @@ function isQF(f) { return f && (f.includes('QF2') || f.includes('QF10')); }
 
 function toLocalISO(dateVal) {
   if (!dateVal) return '';
-  const d = new Date(dateVal);
-  if (isNaN(d)) return String(dateVal).slice(0, 10);
-  // Use London timezone to match how crew enter dates
-  const parts = d.toLocaleDateString('en-GB', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'Europe/London' }).split('/');
+  const s = String(dateVal).trim();
+  // If it's already a plain YYYY-MM-DD (no time component), return it directly —
+  // avoid passing it through new Date() which would treat it as UTC midnight and
+  // could roll it back one day for UK users (UTC+0/+1).
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  // Parse as UTC if Z-suffixed, otherwise as local time (T10:00:00 posts from this app).
+  const d = new Date(s.endsWith('Z') || s.includes('+') ? s : s + 'Z');
+  if (isNaN(d)) return s.slice(0, 10);
+  // If the timestamp is midnight or very early UTC (old Apps Script rows store dates
+  // as T00:00:00.000Z), nudge forward 12h so we land on the correct UK calendar day
+  // regardless of BST (+1h) or GMT (+0h).
+  const adjusted = new Date(d);
+  if (d.getUTCHours() < 6) adjusted.setTime(d.getTime() + 12 * 3600000);
+  // Use London timezone to extract the correct date
+  const parts = adjusted.toLocaleDateString('en-GB', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'Europe/London' }).split('/');
   return `${parts[2]}-${parts[1]}-${parts[0]}`;
 }
 
@@ -1157,13 +1181,21 @@ function extractPickupDates(datesText) {
   const now = new Date();
   const MONTHS = {jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
 
-  // Handle ISO timestamp format e.g. 2026-04-24T23:00:00.000Z — extract UK date
+  // Handle ISO timestamp format e.g. 2026-04-24T00:00:00.000Z — extract UK date.
+  // Old rows from Apps Script arrive as midnight UTC (T00:00:00.000Z).
+  // New rows posted via this app arrive as T10:00:00 (local, no Z).
+  // In both cases we parse the full timestamp and convert to UK date via ukISO(),
+  // which uses Europe/London so BST/GMT is handled correctly.
   const reTS = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z?/g;
   let m;
   while ((m = reTS.exec(datesText)) !== null) {
-    // Preserve Z so Date() parses as UTC not local time
     const tsStr = m[0].endsWith('Z') ? m[0] : m[0] + 'Z';
-    results.push(ukISO(new Date(tsStr)));
+    // For midnight UTC stamps (old rows), add 12h so we land safely in the
+    // intended calendar day regardless of BST offset (+1h in summer).
+    const ts = new Date(tsStr);
+    const hour = ts.getUTCHours();
+    if (hour < 6) ts.setTime(ts.getTime() + 12 * 3600000); // nudge midnight/early-morning UTC into the correct day
+    results.push(ukISO(ts));
   }
 
   // Handle Apps Script / JS Date.toString() format e.g. "Thu May 08 2026 00:00:00 GMT+0000 (UTC)"
@@ -1324,8 +1356,8 @@ function renderBoard() {
 
   // Sort unmatched by date then name
   unmatchedTrips.sort((a, b) => {
-    const da = a.Date ? new Date(a.Date) : new Date('9999');
-    const db = b.Date ? new Date(b.Date) : new Date('9999');
+    const da = a.Date ? new Date(toLocalISO(a.Date) + 'T10:00:00') : new Date('9999');
+    const db = b.Date ? new Date(toLocalISO(b.Date) + 'T10:00:00') : new Date('9999');
     if (da - db !== 0) return da - db;
     return (a.Name || '').localeCompare(b.Name || '');
   });
@@ -1349,8 +1381,8 @@ function renderBoard() {
     }
     // Sort within group by date then name
     group.sort((a, b) => {
-      const da = a.Date ? new Date(a.Date) : new Date('9999');
-      const db = b.Date ? new Date(b.Date) : new Date('9999');
+      const da = a.Date ? new Date(toLocalISO(a.Date) + 'T10:00:00') : new Date('9999');
+      const db = b.Date ? new Date(toLocalISO(b.Date) + 'T10:00:00') : new Date('9999');
       if (da - db !== 0) return da - db;
       return (a.Name || '').localeCompare(b.Name || '');
     });
@@ -1358,16 +1390,16 @@ function renderBoard() {
   });
   // Sort groups by the earliest date in each group, then by first name
   matchGroups.sort((ga, gb) => {
-    const da = ga[0].Date ? new Date(ga[0].Date) : new Date('9999');
-    const db = gb[0].Date ? new Date(gb[0].Date) : new Date('9999');
+    const da = ga[0].Date ? new Date(toLocalISO(ga[0].Date) + 'T10:00:00') : new Date('9999');
+    const db = gb[0].Date ? new Date(toLocalISO(gb[0].Date) + 'T10:00:00') : new Date('9999');
     if (da - db !== 0) return da - db;
     return (ga[0].Name || '').localeCompare(gb[0].Name || '');
   });
   // For pair-row rendering we still want matchGroups structure, but for solo cards
   // we render ALL trips in date order (matched green, unmatched normal)
   const allTripsSorted = [...trips].sort((a, b) => {
-    const da = a.Date ? new Date(a.Date) : new Date('9999');
-    const db = b.Date ? new Date(b.Date) : new Date('9999');
+    const da = a.Date ? new Date(toLocalISO(a.Date) + 'T10:00:00') : new Date('9999');
+    const db = b.Date ? new Date(toLocalISO(b.Date) + 'T10:00:00') : new Date('9999');
     if (da - db !== 0) return da - db;
     return (a.Name || '').localeCompare(b.Name || '');
   });
@@ -1475,7 +1507,7 @@ function renderBoard() {
       seenPaired.add(i);
       partnerIdxs.forEach(pi => seenPaired.add(pi));
       partnerIdxs.forEach(pi => {
-        const sortDate = t.Date ? new Date(t.Date) : new Date('9999');
+        const sortDate = t.Date ? new Date(toLocalISO(t.Date) + 'T10:00:00') : new Date('9999');
         boardItems.push({ sortDate, html: `<div class="pair-row">
             ${tripCards[i]}
             <div class="pair-arrow"><div class="pair-arrow-sym">&#8596;</div><div class="pair-arrow-lbl">Match</div></div>
@@ -1484,7 +1516,7 @@ function renderBoard() {
       });
     } else {
       // Solo card
-      const sortDate = t.Date ? new Date(t.Date) : new Date('9999');
+      const sortDate = t.Date ? new Date(toLocalISO(t.Date) + 'T10:00:00') : new Date('9999');
       boardItems.push({ sortDate, html: tripCards[i] });
     }
   });
@@ -1492,7 +1524,7 @@ function renderBoard() {
   // Add pickup cards, sorted by their first specific date (or far future if flexible)
   pickupsForBoard.forEach((pk, i) => {
     const pickupDates = pk.Dates ? extractPickupDates(pk.Dates) : [];
-    const sortDate = pickupDates.length ? new Date(pickupDates[0]) : new Date('9999');
+    const sortDate = pickupDates.length ? new Date(pickupDates[0] + 'T10:00:00') : new Date('9999');
     boardItems.push({ sortDate, html: pickupCards[i].html });
   });
 
@@ -1809,7 +1841,9 @@ function startEdit(trip) {
     document.getElementById('f-flight-other').value = trip.Flight;
   }
 
-  document.getElementById('f-date').value = trip.Date ? trip.Date.slice(0,10) : '';
+  // Extract a safe YYYY-MM-DD for the date input — toLocalISO handles all stored
+  // formats (ISO timestamp, bare date, etc.) and always returns UK-local date.
+  document.getElementById('f-date').value = trip.Date ? toLocalISO(trip.Date) : '';
 
   // Duration — stored as "4 day", extract number
   const durN = parseInt(trip.Duration);
@@ -1920,11 +1954,19 @@ async function submitTrip() {
   if (!duration) { showToast('Please enter the trip duration (number of days)'); return; }
   if (!SCRIPT_URL) { showToast('Setup required — add your Google Script URL in the Setup tab'); return; }
 
+  // Anchor the date to 10:00 on that day in UK time.
+  // A bare YYYY-MM-DD stored in the sheet gets read back as midnight UTC, which
+  // can be 23:00 the previous day in UK time (GMT) or 22:00 in BST.
+  // Storing it as YYYY-MM-DDT10:00:00 means it's safely mid-morning regardless
+  // of DST, so it always round-trips back to the same calendar date.
+  const dateRaw = document.getElementById('f-date').value; // YYYY-MM-DD from <input type="date">
+  const dateAnchored = dateRaw ? dateRaw + 'T10:00:00' : '';
+
   const payload = {
     action: editingTrip ? 'update' : 'add',
     sheet: 'Swaps',
     rowId: editingTrip ? (editingTrip.RowID || editingTrip._row) : undefined,
-    Name: name, Type: tripType, Flight: flight, Date: date, Duration: duration,
+    Name: name, Type: tripType, Flight: flight, Date: dateAnchored, Duration: duration,
     Pax: document.getElementById('f-pax').value,
     Wants: getWantsValue(),
     WantsDates: document.getElementById('f-wants-date').value.trim(),
